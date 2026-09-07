@@ -12,7 +12,9 @@ const app = express();
 app.use(cookieParser()); // Use cookie-parser
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173",
+    "https://quickshopping-delta.vercel.app/"
+  ],
   credentials: true,
 }));  //Enable CORS so frontend can communicate with backend
 app.use(express.json()); //Parse JSON request bodies
