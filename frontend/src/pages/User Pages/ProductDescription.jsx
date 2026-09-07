@@ -12,6 +12,8 @@ function ProductDescription() {
   const [cartItems, setCartItems] = useState([]);
   const [isInCart, setIsInCart] = useState(false);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const savedUser = JSON.parse(localStorage.getItem("user") || "null");
   const currentUserId = savedUser?._id || savedUser?.id;
 
@@ -22,9 +24,7 @@ function ProductDescription() {
 
   const fetchProduct = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/products/${id}`
-      );
+      const res = await fetch(`${API_URL}/api/products/${id}`);
 
       const data = await res.json();
 
@@ -32,8 +32,7 @@ function ProductDescription() {
         setProduct(data.product);
         setMainImage(data.product.images?.[0] || "");
         console.log("Opening Product:", id);
-        const historyRes = await fetch(
-          "http://localhost:5000/api/history/add",
+        const historyRes = await fetch(`${API_URL}/api/history/add`,
           {
             method: "POST",
             credentials: "include",
@@ -56,7 +55,7 @@ function ProductDescription() {
 
   const fetchCartItems = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart", {
+      const res = await fetch(`${API_URL}/api/cart`, {
         credentials: "include",  //send authentication cookies
       });
 
@@ -95,7 +94,7 @@ function ProductDescription() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/cart/add", {
+      const res = await fetch(`${API_URL}/api/cart/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

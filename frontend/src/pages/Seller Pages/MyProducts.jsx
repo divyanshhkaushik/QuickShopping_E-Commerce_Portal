@@ -13,7 +13,7 @@ function MyProducts() {
   const fetchProducts = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/products/my-products",
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/my-products`,
         {
           credentials: "include",
         }
@@ -43,7 +43,7 @@ function MyProducts() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${productId}`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${productId}`,
         {
           method: "DELETE",
           credentials: "include",

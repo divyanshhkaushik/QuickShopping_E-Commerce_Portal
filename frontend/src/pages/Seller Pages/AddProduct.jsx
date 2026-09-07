@@ -95,7 +95,7 @@ function AddProduct() {
       });
 
       const res = await fetch(
-        "http://localhost:5000/api/products/add-product",
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/add-product`,
         {
           method: "POST",
           credentials: "include",

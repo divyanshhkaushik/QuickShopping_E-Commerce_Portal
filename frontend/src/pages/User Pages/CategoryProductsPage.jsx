@@ -29,7 +29,8 @@ function CategoryProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const url = new URL("http://localhost:5000/api/products");
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const url = new URL(`${API_URL}/api/products`);
       if (category) {
         url.searchParams.set("category", decodeURIComponent(category));
       }
@@ -47,7 +48,7 @@ function CategoryProductsPage() {
 
   const fetchCartItems = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart", {
+      const res = await fetch(`${API_URL}/api/cart`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -62,7 +63,7 @@ function CategoryProductsPage() {
 
   const handleAddToCart = async (productId) => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart/add", {
+      const res = await fetch(`${API_URL}/api/cart/add`, {
         method: "POST",
         credentials: "include",
         headers: {

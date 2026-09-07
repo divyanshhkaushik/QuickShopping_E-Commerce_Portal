@@ -6,9 +6,11 @@ function MyCart() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const fetchCartItems = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart", {
+      const res = await fetch(`${API_URL}/api/cart`, {
         credentials: "include",
       });
 
@@ -26,7 +28,7 @@ function MyCart() {
 
   const removeFromCart = async (itemId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/${itemId}`, {
+      const res = await fetch(`${API_URL}/api/cart/${itemId}`, {
         method: "DELETE",
         credentials: "include",
       });

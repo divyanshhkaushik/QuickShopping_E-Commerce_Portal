@@ -6,13 +6,15 @@ const UserAddressPage = () => {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     fetchAddresses();
   }, []);
 
   const fetchAddresses = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/addresses", {
+      const res = await fetch(`${API_URL}/api/auth/addresses`, {
         credentials: "include",
       });
 

@@ -22,6 +22,8 @@ function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const [currentStep, setCurrentStep] = useState(0);
   const [addresses, setAddresses] = useState([defaultAddress]);
   const [selectedAddressId, setSelectedAddressId] = useState("default-home");
@@ -70,7 +72,7 @@ function CheckoutPage() {
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/addresses", {
+        const res = await fetch(`${API_URL}/api/auth/addresses`, {
           credentials: "include",
         });
 
@@ -188,7 +190,7 @@ function CheckoutPage() {
         totalAmount: total,
       };
 
-      const res = await fetch("http://localhost:5000/api/orders/create", {
+      const res = await fetch(`${API_URL}/api/orders/create`, {
         method: "POST",
         credentials: "include",
         headers: {

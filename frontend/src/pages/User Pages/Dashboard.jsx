@@ -31,6 +31,8 @@ function Dashboard() {
   const isSeller = String(savedUser?.role || "").toLowerCase() === "seller";
   const username = savedUser?.name || savedUser?.fullName || "User";
 
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
   const banners = [banner1, banner2, banner3];
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -51,7 +53,7 @@ function Dashboard() {
 
   const fetchProducts = async (category = selectedCategory) => {
     try {
-      const url = new URL("http://localhost:5000/api/products");
+      const url = new URL(`${API_URL}/api/products`);
 
       if (category && category !== "All") {
         url.searchParams.set("category", category);
@@ -82,7 +84,7 @@ function Dashboard() {
 
   const fetchCartItems = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart", {
+      const res = await fetch(`${API_URL}/api/cart`, {
         credentials: "include",
       });
       const data = await res.json();
@@ -97,7 +99,7 @@ function Dashboard() {
 
   const handleAddToCart = async (productId) => {
     try {
-      const res = await fetch("http://localhost:5000/api/cart/add", {
+      const res = await fetch(`${API_URL}/api/cart/add`, {
         method: "POST",
         credentials: "include",
         headers: {

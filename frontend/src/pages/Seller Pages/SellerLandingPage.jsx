@@ -26,7 +26,7 @@ function SellerLandingPage() {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/products/become-seller",
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/become-seller`,
         {
           method: "PUT",  //Update the existing user and adds him to seller account
           credentials: "include",
