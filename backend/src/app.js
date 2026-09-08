@@ -11,12 +11,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const app = express();
 app.use(cookieParser()); // Use cookie-parser
 
-app.use(cors({
-  origin: ["http://localhost:5173",
-    "https://quickshopping-delta.vercel.app/"
-  ],
-  credentials: true,
-}));  //Enable CORS so frontend can communicate with backend
+app.use(cors());  //enable CORS for all routes
 app.use(express.json()); //Parse JSON request bodies
 
 app.get("/", (req, res) => {
