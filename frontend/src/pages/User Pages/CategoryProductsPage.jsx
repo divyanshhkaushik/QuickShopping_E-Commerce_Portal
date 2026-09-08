@@ -9,6 +9,7 @@ function CategoryProductsPage() {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const savedUser = JSON.parse(localStorage.getItem("user") || "null");
   const currentUserId = savedUser?._id || savedUser?.id;
 
@@ -29,7 +30,6 @@ function CategoryProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const url = new URL(`${API_URL}/api/products`);
       if (category) {
         url.searchParams.set("category", decodeURIComponent(category));

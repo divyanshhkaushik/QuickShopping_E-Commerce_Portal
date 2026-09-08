@@ -30,6 +30,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top, rgba(96, 165, 250, 0.22), transparent 28%),
     radial-gradient(circle at bottom right, rgba(245, 158, 11, 0.12), transparent 25%),
@@ -167,5 +168,14 @@ img {
   .primary-button,
   .secondary-button {
     width: 100%;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+  }
+
+  .shopping-page-shell > * {
+    position: relative;
+    z-index: 1;
   }
 }

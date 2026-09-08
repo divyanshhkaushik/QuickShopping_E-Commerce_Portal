@@ -240,7 +240,7 @@ const Navbar = () => {
           </div>
 
           <div className="border-t border-[#1f2937] bg-[#1f2937]">
-            <div className="mx-auto flex max-w-7xl items-center justify-center gap-3 px-4 py-3 text-sm text-white sm:px-6 lg:px-8">
+            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-3 text-sm text-white sm:px-6 lg:px-8">
               <button
                 onClick={() => setSidebarOpen(true)}
                 className="flex items-center gap-2 rounded-md border border-[#374151] bg-[#111827] px-3 py-2 font-medium text-white transition hover:border-[#f59e0b] hover:text-[#fef3c7]"
@@ -253,7 +253,7 @@ const Navbar = () => {
                 <span>All</span>
               </button>
 
-              <div className="flex flex-1 items-center justify-center gap-3">
+              <div className="flex flex-1 flex-wrap items-center justify-center gap-1 sm:gap-2">
                 {topLinks.map((item) => (
                   <button
                     key={item}
@@ -270,14 +270,11 @@ const Navbar = () => {
                                 ? () => navigate("/orders")
                                 : undefined
                     }
-
-
-                    className="rounded-md px-2 py-1 transition hover:bg-[#374151] hover:text-white"
+                    className="rounded-md px-2 py-1 text-[10px] transition hover:bg-[#374151] hover:text-white sm:text-xs lg:text-sm"
                   >
                     {item}
                   </button>
                 ))}
-
               </div>
             </div>
           </div>

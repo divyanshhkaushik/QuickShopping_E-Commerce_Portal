@@ -1,9 +1,21 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-function AddProduct() {
+const categoryOptions = [
+  "Electronics",
+  "Smart Home",
+  "Computers",
+  "Men's Fashion",
+  "Women's Fashion",
+  "Home & Kitchen",
+  "Beauty & Personal Care",
+  "Mobiles & Accessories",
+  "Others",
+];
+
+function EditProduct() {
   const navigate = useNavigate();
-  const descriptionRef = useRef(null);
+  const { id } = useParams();
 
   const [productData, setProductData] = useState({
     productName: "",
@@ -14,25 +26,55 @@ function AddProduct() {
     stock: "",
     images: [],
   });
+  const [existingImages, setExistingImages] = useState([]);
+  const [newPreviews, setNewPreviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const descriptionRef = useRef(null);
 
-  const [previews, setPreviews] = useState([]);
-  const categoryOptions = [
-    "Electronics",
-    "Smart Home",
-    "Computers",
-    "Men's Fashion",
-    "Women's Fashion",
-    "Home & Kitchen",
-    "Beauty & Personal Care",
-    "Mobiles & Accessories",
-    "Others",
-  ];
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${id}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "Failed to load product");
+        }
+
+        setProductData({
+          productName: data.product.productName || "",
+          description: data.product.description || "",
+          category: data.product.category || "",
+          brand: data.product.brand || "",
+          price: data.product.price || "",
+          stock: data.product.stock || "",
+          images: [],
+        });
+
+        setExistingImages(data.product.images || []);
+      } catch (error) {
+        alert(error.message);
+        navigate("/seller/products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id, navigate]);
 
   const handleChange = (e) => {
-    setProductData({
-      ...productData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setProductData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const applyDescriptionFormat = (type) => {
@@ -86,14 +128,18 @@ function AddProduct() {
       images: [...prev.images, ...files],
     }));
 
-    const imagePreviews = files.map((file) =>
-      URL.createObjectURL(file)
-    );
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setNewPreviews((prev) => [...prev, ...previews]);
+    e.target.value = "";
+  };
 
-    setPreviews((prev) => [
+  const removeNewImage = (index) => {
+    setProductData((prev) => ({
       ...prev,
-      ...imagePreviews,
-    ]);
+      images: prev.images.filter((_, i) => i !== index),
+    }));
+
+    setNewPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -101,45 +147,21 @@ function AddProduct() {
 
     try {
       const formData = new FormData();
-
-      formData.append(
-        "productName",
-        productData.productName
-      );
-
-      formData.append(
-        "description",
-        productData.description
-      );
-
-      formData.append(
-        "category",
-        productData.category
-      );
-
-      formData.append(
-        "brand",
-        productData.brand
-      );
-
-      formData.append(
-        "price",
-        productData.price
-      );
-
-      formData.append(
-        "stock",
-        productData.stock
-      );
+      formData.append("productName", productData.productName);
+      formData.append("description", productData.description);
+      formData.append("category", productData.category);
+      formData.append("brand", productData.brand || "");
+      formData.append("price", String(productData.price));
+      formData.append("stock", String(productData.stock));
 
       productData.images.forEach((image) => {
         formData.append("images", image);
       });
 
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/add-product`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${id}`,
         {
-          method: "POST",
+          method: "PUT",
           credentials: "include",
           body: formData,
         }
@@ -148,46 +170,41 @@ function AddProduct() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          data.message || "Failed to add product"
-        );
+        throw new Error(data.message || "Failed to update product");
       }
 
-      alert("Product Added Successfully");
-
-      navigate("/seller-dashboard");
-
+      alert(data.message || "Product updated successfully");
+      navigate("/seller/products");
     } catch (error) {
       alert(error.message);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc] text-lg font-medium text-[#111827]">
+        Loading product...
+      </div>
+    );
+  }
+
   return (
     <div className="shopping-page-shell">
-      {/* Header */}
-
       <div className="bg-[#131921]">
         <div className="mx-auto max-w-7xl px-6 py-8">
           <h1 className="text-4xl font-black">
             <span className="bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#f59e0b] bg-clip-text text-transparent">
-              Add New Product
+              Edit Product
             </span>
           </h1>
 
-          <p className="mt-2 text-[#d1d9e3]">
-            List your product and start selling.
-          </p>
+          <p className="mt-2 text-[#d1d9e3]">Update product details and images.</p>
         </div>
       </div>
 
-      {/* Form */}
-
       <div className="mx-auto max-w-5xl px-6 py-8">
         <div className="rounded-[2rem] bg-white p-8 shadow-xl">
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-5"
-          >
+          <form onSubmit={handleSubmit} className="space-y-5">
             <input
               type="text"
               name="productName"
@@ -229,41 +246,17 @@ function AddProduct() {
             <select
               name="category"
               value={productData.category}
-              onChange={(e) => {
-                const value = e.target.value;
-                setProductData((prev) => ({
-                  ...prev,
-                  category: value,
-                }));
-              }}
+              onChange={handleChange}
               required
               className="w-full rounded-xl border border-[#dfe7f0] p-3"
             >
               <option value="">Select Category</option>
-
               {categoryOptions.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>
               ))}
             </select>
-
-            {productData.category === "Others" && (
-              <input
-                type="text"
-                name="category"
-                placeholder="Enter custom category"
-                value={productData.category === "Others" ? "" : productData.category}
-                onChange={(e) => {
-                  setProductData((prev) => ({
-                    ...prev,
-                    category: e.target.value,
-                  }));
-                }}
-                required
-                className="w-full rounded-xl border border-[#dfe7f0] p-3"
-              />
-            )}
 
             <input
               type="text"
@@ -282,6 +275,7 @@ function AddProduct() {
                 value={productData.price}
                 onChange={handleChange}
                 required
+                min="0"
                 className="w-full rounded-xl border border-[#dfe7f0] p-3"
               />
 
@@ -292,15 +286,14 @@ function AddProduct() {
                 value={productData.stock}
                 onChange={handleChange}
                 required
+                min="0"
                 className="w-full rounded-xl border border-[#dfe7f0] p-3"
               />
             </div>
 
-            {/* Image Upload */}
-
             <div>
               <label className="mb-2 block font-medium text-[#111827]">
-                Product Image
+                Update Product Images
               </label>
 
               <input
@@ -308,46 +301,63 @@ function AddProduct() {
                 accept="image/*"
                 multiple
                 onChange={handleImageChange}
-                required
                 className="w-full rounded-xl border border-[#dfe7f0] p-3"
               />
               <p className="mt-2 text-sm text-[#64748b]">
-                Upload multiple high-quality images to help customers understand your product better.
-                 Include front, back, side, packaging and close-up shots for maximum engagement.
+                Upload new photos to replace the current image set. Leaving this empty keeps the existing photos.
               </p>
             </div>
 
-            {/* Preview */}
+            <div>
+              <h3 className="mb-3 font-semibold text-[#111827]">Current Images</h3>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {existingImages.map((img, index) => (
+                  <div
+                    key={`existing-${index}`}
+                    className="overflow-hidden rounded-xl border border-[#dfe7f0]"
+                  >
+                    <img src={img} alt={`Current ${index + 1}`} className="h-40 w-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            {previews.length > 0 && (
+            {newPreviews.length > 0 && (
               <div>
-                <h3 className="mb-3 font-semibold text-[#111827]">
-                  Image Preview
-                </h3>
-
+                <h3 className="mb-3 font-semibold text-[#111827]">New Upload Preview</h3>
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                  {previews.map((img, index) => (
-                    <div
-                      key={index}
-                      className="overflow-hidden rounded-xl border border-[#dfe7f0]"
-                    >
-                      <img
-                        src={img}
-                        alt={`Preview ${index + 1}`}
-                        className="h-40 w-full object-cover"
-                      />
+                  {newPreviews.map((img, index) => (
+                    <div key={`new-${index}`} className="relative overflow-hidden rounded-xl border border-[#dfe7f0]">
+                      <img src={img} alt={`New Preview ${index + 1}`} className="h-40 w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="absolute right-2 top-2 rounded-full bg-red-500 px-2 py-1 text-xs font-bold text-white"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-gradient-to-r from-[#ffb347] to-[#f28c28] py-4 text-lg font-bold text-[#111827] shadow-lg"
-            >
-              Add Product
-            </button>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => navigate("/seller/products")}
+                className="flex-1 rounded-xl border border-[#dfe7f0] px-4 py-3 font-medium text-[#475569]"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="flex-1 rounded-xl bg-gradient-to-r from-[#ffb347] to-[#f28c28] px-4 py-3 text-lg font-bold text-[#111827] shadow-lg"
+              >
+                Save Changes
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -355,4 +365,4 @@ function AddProduct() {
   );
 }
 
-export default AddProduct;
+export default EditProduct;

@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import SidebarMenu from "../../components/SidebarMenu";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import CategoryShowcaseCards from "../../components/CategoryShowcaseCards";
 import banner1 from "../../assets/Shopping_Banner_1.jpg";
 import banner2 from "../../assets/Shopping_Banner_2.jpg";
 import banner3 from "../../assets/Shopping_Banner_3.jpg";
@@ -149,7 +150,7 @@ function Dashboard() {
       <div className="border-b border-[#dfe7f0] bg-[#f8fafc]">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4">
-            <p className="text-3xl font-black tracking-tight text-[#111827] sm:text-4xl">
+            <p className="text-2xl font-black tracking-tight text-[#111827] sm:text-3xl lg:text-4xl">
               <span className="bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#f59e0b] bg-clip-text text-transparent">
                 Hi, {username},
               </span>
@@ -159,7 +160,7 @@ function Dashboard() {
             <button
               type="button"
               onClick={handleSellClick}
-              className="rounded-full bg-[#1d4ed8] px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#1e40af]"
+              className="rounded-full bg-[#1d4ed8] px-4 py-2 text-xs font-semibold text-white shadow hover:bg-[#1e40af] sm:text-sm"
             >
               {isSeller ? "Seller Dashboard" : "Become a Seller"}
             </button>
@@ -172,7 +173,7 @@ function Dashboard() {
           <img
             src={banners[currentSlide]}
             alt="Shopping Banner"
-            className="h-[450px] w-full object-cover transition-all duration-700"
+            className="h-[260px] w-full object-cover transition-all duration-700 sm:h-[350px] lg:h-[450px]"
           />
 
           <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4">
@@ -202,6 +203,8 @@ function Dashboard() {
           </div>
         </div>
       </section>
+
+      <CategoryShowcaseCards />
 
       <SidebarMenu
         isOpen={sidebarOpen}
@@ -243,7 +246,7 @@ function Dashboard() {
             No products found for <span className="font-semibold text-[#111827]">{selectedCategory === "All" ? "this catalog" : selectedCategory}</span>.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
             {products.map((product) => {
               const productInCart = cartItems.some(
                 (item) =>
@@ -257,42 +260,42 @@ function Dashboard() {
               return (
                 <div
                   key={product._id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl"
+                  className="overflow-hidden rounded-xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg sm:rounded-2xl sm:shadow-lg"
                 >
                   <Link to={`/product/${product._id}`} className="block">
                     <img
                       src={product.images?.[0]}
                       alt={product.productName}
-                      className="h-60 w-full object-cover"
+                      className="h-28 w-full object-cover sm:h-44 lg:h-60"
                     />
                   </Link>
 
-                  <div className="p-4">
+                  <div className="p-2.5 sm:p-4">
                     <Link to={`/product/${product._id}`} className="block">
-                      <h3 className="text-xl font-bold text-[#111827] line-clamp-2 hover:text-[#2563eb]">
+                      <h3 className="text-[11px] font-bold leading-tight text-[#111827] line-clamp-2 hover:text-[#2563eb] sm:text-base">
                         {product.productName}
                       </h3>
                     </Link>
 
-                    <p className="mt-2 text-sm text-[#64748b] line-clamp-2">
+                    <p className="mt-1 text-[10px] text-[#64748b] line-clamp-2 sm:text-sm">
                       <b>{product.brand}</b>
                     </p>
 
-                    <div className="mt-3">
-                      <span className="text-2xl font-bold text-[#2563eb]">
+                    <div className="mt-2 sm:mt-3">
+                      <span className="text-sm font-bold text-[#2563eb] sm:text-2xl">
                         ₹{product.price}
                       </span>
                     </div>
 
-                    <p className="mt-2 text-sm text-green-600">
-                      In Stock: Selling Fast!!
+                    <p className="mt-1 text-[9px] text-green-600 sm:mt-2 sm:text-sm">
+                      In Stock
                     </p>
 
                     <button
                       type="button"
                       onClick={() => handleAddToCart(product._id)}
                       disabled={productInCart || isOwnProduct}
-                      className={`mt-4 w-full rounded-full py-2 font-medium ${
+                      className={`mt-2 w-full rounded-full py-1.5 text-[10px] font-medium sm:mt-4 sm:py-2 sm:text-sm ${
                         productInCart
                           ? "bg-green-500 text-white cursor-not-allowed"
                           : isOwnProduct
@@ -301,7 +304,7 @@ function Dashboard() {
                       }`}
                     >
                       {productInCart
-                        ? "✓ Added to Cart"
+                        ? "✓ Added"
                         : isOwnProduct
                         ? "Your Product"
                         : "Add to Cart"}

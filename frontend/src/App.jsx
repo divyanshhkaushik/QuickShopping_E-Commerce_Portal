@@ -10,6 +10,7 @@ import AddUserAddress from "./pages/User Pages/AddUserAddress";
 import SellerLandingPage from "./pages/Seller Pages/SellerLandingPage";
 import SellerDashboard from "./pages/Seller Pages/SellerDashboard";
 import AddProduct from "./pages/Seller Pages/AddProduct";
+import EditProduct from "./pages/Seller Pages/EditProduct";
 import MyProducts from "./pages/Seller Pages/MyProducts";
 import ProductDescription from "./pages/User Pages/ProductDescription";
 import MyCart from "./pages/User Pages/MyCart";
@@ -38,6 +39,7 @@ function App() {
         <Route path="/become-seller" element={<SellerLandingPage />}/>
         <Route path="/seller-dashboard" element={<SellerDashboard />}/>
         <Route path="/seller/add-product" element={<AddProduct/>}/>
+        <Route path="/seller/edit-product/:id" element={<EditProduct />} />
         <Route path="/seller/products" element={<MyProducts />}/>
         <Route path="/product/:id" element={<ProductDescription/>}/>
         <Route path="/history" element={<BrowsingHistory/>}/>

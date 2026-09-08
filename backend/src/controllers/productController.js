@@ -106,6 +106,81 @@ const getMyProducts = async (req, res) => {
   }
 };
 
+const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findOne({
+      _id: req.params.id,
+      sellerId: req.user.id,
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    const {
+      productName,
+      description,
+      category,
+      brand,
+      price,
+      stock,
+    } = req.body;
+
+    if (productName !== undefined) {
+      product.productName = productName.trim();
+    }
+
+    if (description !== undefined) {
+      product.description = description.trim();
+    }
+
+    if (category !== undefined) {
+      product.category = category.trim();
+    }
+
+    if (brand !== undefined) {
+      product.brand = brand.trim();
+    }
+
+    if (price !== undefined) {
+      product.price = Number(price);
+    }
+
+    if (stock !== undefined) {
+      product.stock = Number(stock);
+    }
+
+    if (req.files && req.files.length > 0) {
+      const imageUrls = [];
+
+      for (const file of req.files) {
+        const uploadedImage = await cloudinary.uploader.upload(file.path, {
+          folder: "quickshopping-products",
+        });
+        imageUrls.push(uploadedImage.secure_url);
+      }
+
+      product.images = imageUrls;
+    }
+
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const deleteProduct = async (req, res) => {
   try {
     await Product.findOneAndDelete({
@@ -190,6 +265,7 @@ module.exports = {
   becomeSeller,
   addProduct,
   getMyProducts,
+  updateProduct,
   deleteProduct,
   getAllProducts,
   getProductById,

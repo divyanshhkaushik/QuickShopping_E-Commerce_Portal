@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function MyProducts() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProducts();
@@ -13,7 +13,7 @@ function MyProducts() {
   const fetchProducts = async () => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/my-products`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/my-products`,
         {
           credentials: "include",
         }
@@ -31,19 +31,14 @@ function MyProducts() {
     }
   };
 
-  const handleDelete = async (
-    productId
-  ) => {
-    const confirmDelete =
-      window.confirm(
-        "Delete this product?"
-      );
+  const handleDelete = async (productId) => {
+    const confirmDelete = window.confirm("Delete this product?");
 
     if (!confirmDelete) return;
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${productId}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${productId}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -53,16 +48,11 @@ function MyProducts() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          data.message
-        );
+        throw new Error(data.message);
       }
 
-      setProducts(
-        products.filter(
-          (product) =>
-            product._id !== productId
-        )
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product._id !== productId)
       );
 
       alert(data.message);
@@ -73,8 +63,6 @@ function MyProducts() {
 
   return (
     <div className="shopping-page-shell">
-      {/* Header */}
-
       <div className="bg-[#131921]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-8">
           <div>
@@ -84,9 +72,7 @@ function MyProducts() {
               </span>
             </h1>
 
-            <p className="mt-2 text-[#d1d9e3]">
-              Manage your products
-            </p>
+            <p className="mt-2 text-[#d1d9e3]">Manage your products</p>
           </div>
 
           <Link
@@ -100,18 +86,12 @@ function MyProducts() {
 
       <div className="mx-auto max-w-7xl px-6 py-8">
         {loading ? (
-          <div className="text-center text-lg">
-            Loading products...
-          </div>
+          <div className="text-center text-lg">Loading products...</div>
         ) : products.length === 0 ? (
           <div className="rounded-3xl bg-white p-10 text-center shadow-lg">
-            <h2 className="text-2xl font-bold">
-              No Products Found
-            </h2>
+            <h2 className="text-2xl font-bold">No Products Found</h2>
 
-            <p className="mt-2 text-[#64748b]">
-              Add your first product.
-            </p>
+            <p className="mt-2 text-[#64748b]">Add your first product.</p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -146,11 +126,16 @@ function MyProducts() {
                   </div>
 
                   <div className="mt-5 flex gap-3">
-                    <button className="flex-1 rounded-lg bg-[#2563eb] py-2 font-medium text-white">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/seller/edit-product/${product._id}`)}
+                      className="flex-1 rounded-lg bg-[#2563eb] py-2 font-medium text-white"
+                    >
                       Edit
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handleDelete(product._id)}
                       className="flex-1 rounded-lg bg-red-500 py-2 font-medium text-white"
                     >
@@ -167,6 +152,7 @@ function MyProducts() {
           </div>
         )}
       </div>
+
     </div>
   );
 }
