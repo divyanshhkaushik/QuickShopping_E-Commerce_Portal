@@ -1,4 +1,9 @@
 import { Link } from "react-router-dom";
+import logo from "../../assets/Logo.png";
+import bannerOne from "../../assets/Shopping_Banner_1.jpg";
+import bannerTwo from "../../assets/Shopping_Banner_2.jpg";
+import bannerThree from "../../assets/Shopping_Banner_3.jpg";
+import productImage from "../../assets/echo1.jpg";
 
 const features = [
   {
@@ -21,16 +26,24 @@ const stats = [
   { label: "Avg. rating", value: "4.9/5" },
 ];
 
+const promoCards = [
+  { title: "Home essentials", image: bannerOne, accent: "bg-[#dbeafe]" },
+  { title: "Smart living", image: bannerTwo, accent: "bg-[#fef3c7]" },
+  { title: "Trending styles", image: bannerThree, accent: "bg-[#e0f2fe]" },
+];
+
 function LandingPage() {
   return (
     <div className="shopping-page-shell no-bg text-[#1f2937]">
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
         <header className="rounded-full border border-[#dfe7f0] bg-[#131921] px-4 py-3 shadow-lg shadow-[#1d2c3c]/20 sm:px-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#f7b267] to-[#f28c28] text-lg font-bold text-[#131921] shadow-lg shadow-[#f59e0b]/30">
-                Q
-              </div>
+              <img
+                src={logo}
+                alt="QuickShopping logo"
+                className="h-10 w-10 object-contain"
+              />
               <div>
                 <p className="text-lg font-bold tracking-tight text-white">QuickShopping</p>
               </div>
@@ -114,24 +127,33 @@ function LandingPage() {
                     <span className="rounded-full bg-emerald-100 px-2 py-1 text-emerald-700">Live</span>
                   </div>
 
-                  <div className="rounded-[1.5rem] bg-gradient-to-br from-[#dbeafe] via-[#eff6ff] to-[#fef3c7] p-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-[#475569]">Featured product</p>
-                        <h2 className="mt-2 text-2xl font-bold text-[#111827]">Nova Headphones</h2>
-                      </div>
-                      <div className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-[#b45309]">
-                        30% Off
-                      </div>
+                  <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div className="overflow-hidden rounded-[1.5rem] border border-[#dfe7f0] bg-white p-2 shadow-sm">
+                      <img
+                        src={productImage}
+                        alt="Featured product"
+                        className="h-56 w-full rounded-[1.2rem] object-cover"
+                      />
                     </div>
 
-                    <div className="mt-6 rounded-[1.5rem] border border-[#dfe7f0] bg-white p-4">
-                      <div className="flex items-center justify-between text-sm text-[#475569]">
-                        <span>Noise cancelling</span>
-                        <span className="text-[#b45309]">$199</span>
+                    <div className="space-y-4">
+                      <div className="rounded-[1.3rem] bg-gradient-to-br from-[#dbeafe] to-[#eff6ff] p-4">
+                        <p className="text-sm text-[#475569]">Featured product</p>
+                        <h2 className="mt-2 text-2xl font-bold text-[#111827]">Nova Sound</h2>
+                        <div className="mt-3 flex items-center justify-between text-sm text-[#475569]">
+                          <span>Noise canceling</span>
+                          <span className="font-bold text-[#b45309]">₹1899</span>
+                        </div>
                       </div>
-                      <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-[#e2e8f0]">
-                        <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-[#f59e0b] to-[#f28c28]" />
+
+                      <div className="rounded-[1.3rem] border border-[#dfe7f0] bg-white p-4">
+                        <div className="flex items-center justify-between text-sm text-[#475569]">
+                          <span>Deal progress</span>
+                          <span className="font-bold text-[#2563eb]">72%</span>
+                        </div>
+                        <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-[#e2e8f0]">
+                          <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-[#2563eb] to-[#f59e0b]" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -146,6 +168,44 @@ function LandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </section>
+
+          <section id="offers" className="mt-20">
+            <div className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#2563eb]">Deals & picks</p>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight text-[#111827] sm:text-4xl">
+                  Curated for everyday life
+                </h2>
+              </div>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {promoCards.map((card) => (
+                <div
+                  key={card.title}
+                  className={`${card.accent} overflow-hidden rounded-[2rem] border border-[#dfe7f0] p-4 shadow-lg shadow-[#cbd5e1]/40`}
+                >
+                  <div className="overflow-hidden rounded-[1.4rem] border border-white/70 bg-white p-2">
+                    <img
+                      src={card.image}
+                      alt={card.title}
+                      className="h-52 w-full rounded-[1rem] object-cover"
+                    />
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-bold text-[#111827]">{card.title}</h3>
+                      <p className="mt-1 text-sm text-[#475569]">Fresh picks for your home</p>
+                    </div>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#b45309] shadow-sm">
+                      New
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
 

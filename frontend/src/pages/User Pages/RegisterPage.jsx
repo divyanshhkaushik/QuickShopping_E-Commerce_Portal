@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import shoppingCartImage from "../../assets/Shopping_cart.jpg";
+import {
+  getFieldError,
+  getPasswordStrength,
+  registerSchema,
+} from "../../validation/registerSchema";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -11,24 +16,57 @@ function RegisterPage() {
     password: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+
+  const passwordStrength = useMemo(
+    () => getPasswordStrength(formData.password),
+    [formData.password]
+  );
 
   const handleChange = (e) => {
-    setFormData({
+    const { name, value } = e.target;
+    const nextFormData = {
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
+    };
+
+    setFormData(nextFormData);
+    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    const fieldError = getFieldError(name, value, nextFormData);
+    setErrors((prev) => ({
+      ...prev,
+      [name]: fieldError,
+    }));
+  };
+
+  const validateForm = () => {
+    const result = registerSchema.safeParse(formData);
+
+    if (result.success) {
+      return true;
+    }
+
+    const nextErrors = {};
+    result.error.issues.forEach((issue) => {
+      const fieldName = issue.path[0] || "form";
+      nextErrors[fieldName] = issue.message;
     });
+
+    setErrors(nextErrors);
+    return false;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+    if (!validateForm()) {
       return;
     }
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
       const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
@@ -43,11 +81,27 @@ function RegisterPage() {
         }),
       });
 
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Registration Failed");
+      }
+
       alert("Registration Successful");
       navigate("/login");
     } catch (error) {
-      alert(error.response?.data?.message || "Registration Failed");
+      alert(error.message || "Registration Failed");
     }
+  };
+
+  const renderError = (fieldName) => {
+    const shouldShowError = touched[fieldName] && errors[fieldName];
+    return shouldShowError ? (
+      <p className="mt-1 min-h-[18px] text-xs font-medium text-red-600" aria-live="polite">
+        {errors[fieldName]}
+      </p>
+    ) : (
+      <div className="mt-1 min-h-[18px]" />
+    );
   };
 
   return (
@@ -84,8 +138,9 @@ function RegisterPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className={`input-field ${touched.name && errors.name ? "border-red-500" : ""}`}
                   />
+                  {renderError("name")}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -97,8 +152,9 @@ function RegisterPage() {
                     value={formData.phone}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className={`input-field ${touched.phone && errors.phone ? "border-red-500" : ""}`}
                   />
+                  {renderError("phone")}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -110,8 +166,9 @@ function RegisterPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className={`input-field ${touched.email && errors.email ? "border-red-500" : ""}`}
                   />
+                  {renderError("email")}
                 </div>
 
                 <div className="sm:col-span-1">
@@ -123,8 +180,24 @@ function RegisterPage() {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className={`input-field ${touched.password && errors.password ? "border-red-500" : ""}`}
                   />
+                  {formData.password ? (
+                    <div className="mt-2">
+                      <div className="mb-1 flex items-center justify-between text-[11px] font-medium">
+                        <span className={passwordStrength.textColor}>Password strength</span>
+                        <span className={passwordStrength.textColor}>{passwordStrength.label}</span>
+                      </div>
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className={`h-full rounded-full transition-all ${passwordStrength.color}`}
+                          style={{ width: `${(passwordStrength.strength / 3) * 100}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-slate-500">{passwordStrength.message}</p>
+                    </div>
+                  ) : null}
+                  {renderError("password")}
                 </div>
 
                 <div className="sm:col-span-1">
@@ -136,8 +209,9 @@ function RegisterPage() {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="input-field"
+                    className={`input-field ${touched.confirmPassword && errors.confirmPassword ? "border-red-500" : ""}`}
                   />
+                  {renderError("confirmPassword")}
                 </div>
               </div>
 

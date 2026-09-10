@@ -61,53 +61,73 @@ function OrdersPage() {
             </div>
           ) : (
             <div className="mt-8 space-y-5">
-              {orders.map((order) => (
-                <div key={order._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Order ID</p>
-                      <p className="mt-1 text-lg font-bold text-slate-900">{order.orderId}</p>
-                    </div>
-                    <div className="text-left md:text-right">
-                      <p className="text-sm text-slate-500">Status</p>
-                      <p className="mt-1 font-semibold text-emerald-600">{order.status}</p>
-                    </div>
-                  </div>
+              {orders.map((order) => {
+                const address = order.shippingAddress || {};
+                const statusColor =
+                  order.status === "Dispatched" ? "text-blue-600" : "text-emerald-600";
 
-                  <div className="mt-4 space-y-4">
-                    {order.items.map((item, index) => (
-                      <div key={`${order._id}-${index}`} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3">
-                        <img
-                          src={item.image || "https://via.placeholder.com/200x200?text=Product"}
-                          alt={item.productName}
-                          className="h-20 w-20 rounded-lg object-cover"
-                        />
-
-                        <div className="flex-1">
-                          <p className="font-bold text-slate-900">{item.productName}</p>
-                          <p className="mt-1 text-sm text-slate-500">Qty: {item.quantity}</p>
-                        </div>
-
-                        <div className="text-right">
-                          <p className="font-bold text-blue-600">₹{item.price * item.quantity}</p>
-                          <button
-                            type="button"
-                            onClick={() => window.location.href = `/product/${item.productId?._id || item.productId}`}
-                            className="mt-2 rounded-full border border-[#cbd5e1] bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-[#2563eb] hover:text-[#2563eb]"
-                          >
-                            Buy Again
-                          </button>
-                        </div>
+                return (
+                  <div key={order._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                    <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-slate-500">Order ID</p>
+                        <p className="mt-1 text-lg font-bold text-slate-900">{order.orderId}</p>
                       </div>
-                    ))}
-                  </div>
+                      <div className="text-left md:text-right">
+                        <p className="text-sm text-slate-500">Status</p>
+                        <p className={`mt-1 font-semibold ${statusColor}`}>{order.status}</p>
+                      </div>
+                    </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4 text-sm text-slate-600">
-                    <span>Placed on {new Date(order.createdAt).toLocaleDateString()}</span>
-                    <span className="text-lg font-bold text-slate-900">Total: ₹{order.totalAmount}</span>
+                    <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+                      <p className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">Delivery Address</p>
+                      <div className="mt-2 space-y-1 text-sm text-slate-700">
+                        <p className="font-bold text-slate-900">{address.fullName}</p>
+                        <p>{address.addressLine1}</p>
+                        {address.addressLine2 && <p>{address.addressLine2}</p>}
+                        <p>
+                          {address.city}, {address.state} - {address.pincode}
+                        </p>
+                        <p>{address.country}</p>
+                        <p>Phone: {address.phone}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                      {order.items.map((item, index) => (
+                        <div key={`${order._id}-${index}`} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3">
+                          <img
+                            src={item.image || "https://via.placeholder.com/200x200?text=Product"}
+                            alt={item.productName}
+                            className="h-20 w-20 rounded-lg object-cover"
+                          />
+
+                          <div className="flex-1">
+                            <p className="font-bold text-slate-900">{item.productName}</p>
+                            <p className="mt-1 text-sm text-slate-500">Qty: {item.quantity}</p>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="font-bold text-blue-600">₹{item.price * item.quantity}</p>
+                            <button
+                              type="button"
+                              onClick={() => window.location.href = `/product/${item.productId?._id || item.productId}`}
+                              className="mt-2 rounded-full border border-[#cbd5e1] bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-[#2563eb] hover:text-[#2563eb]"
+                            >
+                              Buy Again
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4 text-sm text-slate-600">
+                      <span>Placed on {new Date(order.createdAt).toLocaleDateString()}</span>
+                      <span className="text-lg font-bold text-slate-900">Total: ₹{order.totalAmount}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

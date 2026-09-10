@@ -4,19 +4,29 @@ import { useEffect, useState } from "react";
 function SellerDashboard() {
   const savedUser = JSON.parse(localStorage.getItem("user") || "null");
   const username = savedUser?.name || savedUser?.fullName || "Seller";
+  const sellerId = savedUser?._id || savedUser?.id;
 
   const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const totalProducts = products.length;
 
   const totalStock = products.reduce(
-   (total, product) => total + product.stock,0
+   (total, product) => total + Number(product.stock || 0),0
   );
 
-  const totalRevenue = products.reduce(
-   (total, product) => total + product.price * product.stock,0
-  );
+  const totalRevenue = orders.reduce((total, order) => {
+    const sellerOrderTotal = (order.items || []).reduce((sum, item) => {
+      if (String(item.sellerId) !== String(sellerId)) return sum;
+      return sum + Number(item.price || 0) * Number(item.quantity || 0);
+    }, 0);
+
+    return total + sellerOrderTotal;
+  }, 0);
+
+  const pendingOrders = orders.filter((order) => order.status === "Placed").length;
+
   const stats = [
   {
     label: "Total Revenue",
@@ -35,7 +45,7 @@ function SellerDashboard() {
   },
   {
     label: "Pending Orders",
-    value: "0",
+    value: pendingOrders,
     color: "text-red-500",
   },
 ];
@@ -68,30 +78,45 @@ function SellerDashboard() {
   ];
 
   useEffect(() => {
-  fetchMyProducts();
-}, []);
+    fetchMyProducts();
+    fetchSellerOrders();
+  }, []);
 
-const fetchMyProducts = async () => {
-  try {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    const res = await fetch(
-      `${API_URL}/api/products/my-products`,
-      {
+  const fetchMyProducts = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/products/my-products`, {
         credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setProducts(data.products || []);
       }
-    );
-
-    const data = await res.json();
-
-    if (res.ok) {
-      setProducts(data.products);
+    } catch (error) {
+      console.error(error);
     }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const fetchSellerOrders = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${API_URL}/api/orders/seller`, {
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setOrders(data.orders || []);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
 
@@ -164,58 +189,86 @@ const fetchMyProducts = async () => {
     Recent Products
   </h2>
 
-  {loading ? (
-    <div className="rounded-3xl bg-white p-8 shadow-lg">
-      Loading products...
-    </div>
-  ) : products.length === 0 ? (
-    <div className="rounded-3xl bg-white p-8 shadow-lg">
-      <h3 className="text-lg font-semibold">
-        No Products Added Yet
-      </h3>
-
-      <p className="mt-2 text-[#64748b]">Start by adding your first product.
-      </p>
-    </div>
-  ) : (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {products.slice(0, 3).map((product) => (
-        <div
-          key={product._id}
-          className="overflow-hidden rounded-3xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
-            <img 
-            src={product.images?.[0]}
-            alt={product.productName}
-            className="h-52 w-full object-cover"
-          />
-
-          <div className="p-5">
-            <h3 className="text-lg font-bold text-[#111827]">
-              {product.productName}
-            </h3>
-            <p className="mt-2 text-sm text-[#64748b] linep-2">
-              {product.description}
-            </p>
-
-            <div className="mt-4 flex items-center justify-between">
-              <span className="text-xl font-bold text-[#2563eb]">
-                ₹{product.price}
-              </span>
-
-              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                Stock: {product.stock}
-              </span>
+          {loading ? (
+            <div className="rounded-3xl bg-white p-8 shadow-lg">
+              Loading products...
             </div>
+          ) : products.length === 0 ? (
+            <div className="rounded-3xl bg-white p-8 shadow-lg">
+              <h3 className="text-lg font-semibold">No Products Added Yet</h3>
+              <p className="mt-2 text-[#64748b]">Start by adding your first product.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {products.slice(0, 3).map((product) => (
+                <div
+                  key={product._id}
+                  className="overflow-hidden rounded-3xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <img
+                    src={product.images?.[0]}
+                    alt={product.productName}
+                    className="h-52 w-full object-cover"
+                  />
 
-            <p className="mt-3 text-xs text-[#64748b]">
-              Category: {product.category}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</section>
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-[#111827]">{product.productName}</h3>
+                    <p className="mt-2 text-sm text-[#64748b] line-clamp-2">{product.description}</p>
+
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-xl font-bold text-[#2563eb]">₹{product.price}</span>
+
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+                        Stock: {product.stock}
+                      </span>
+                    </div>
+
+                    <p className="mt-3 text-xs text-[#64748b]">Category: {product.category}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-10">
+          <h2 className="mb-5 text-2xl font-bold text-[#111827]">Recent Orders</h2>
+
+          {orders.length === 0 ? (
+            <div className="rounded-3xl bg-white p-8 shadow-lg">
+              <h3 className="text-lg font-semibold">No sales yet</h3>
+              <p className="mt-2 text-[#64748b]">Your incoming customer orders will appear here.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orders.slice(0, 4).map((order) => (
+                <div key={order._id} className="rounded-3xl bg-white p-5 shadow-lg">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="text-sm text-[#64748b]">Order ID</p>
+                      <h3 className="text-lg font-bold text-[#111827]">{order.orderId}</h3>
+                    </div>
+                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
+                      {order.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {(order.items || []).filter((item) => String(item.sellerId) === String(sellerId)).map((item, index) => (
+                      <div key={`${order._id}-${index}`} className="flex items-center justify-between rounded-2xl bg-[#f8fafc] p-3">
+                        <div>
+                          <p className="font-medium text-[#111827]">{item.productName}</p>
+                          <p className="text-sm text-[#64748b]">Qty: {item.quantity}</p>
+                        </div>
+                        <p className="font-semibold text-[#2563eb]">₹{Number(item.price * item.quantity).toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="mt-10">
           <h2 className="mb-5 text-2xl font-bold text-[#111827]">Store Overview</h2>
@@ -225,12 +278,15 @@ const fetchMyProducts = async () => {
               <div>
                 <h3 className="font-bold text-[#111827]">Inventory Status</h3>
                 <p className="mt-2 text-[#64748b]">
-                  {totalStock > 0 ? `${totalStock} units of all products is available in inventory` : "No inventory available"}</p>
+                  {totalStock > 0 ? `${totalStock} units of all products are available in inventory` : "No inventory available"}
+                </p>
               </div>
 
               <div>
-                <h3 className="font-bold text-[#111827]">Today&apos;s Orders</h3>
-                <p className="mt-2 text-[#64748b]">No new orders today.</p>
+                <h3 className="font-bold text-[#111827]">Orders Received</h3>
+                <p className="mt-2 text-[#64748b]">
+                  {orders.length > 0 ? `${orders.length} order(s) recorded for your store` : "No orders received yet."}
+                </p>
               </div>
 
               <div>

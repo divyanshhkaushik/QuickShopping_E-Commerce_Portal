@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logo from "../assets/Logo.png";
 
 function Footer() {
   return (
@@ -7,9 +8,16 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-4">
         {/* Brand */}
         <div>
-          <h2 className="mb-4 text-2xl font-bold text-[#f7b267]">
-            QuickShopping
-          </h2>
+          <div className="mb-4 flex items-center gap-3">
+            <img
+              src={logo}
+              alt="QuickShopping logo"
+              className="h-12 w-12 rounded-full object-cover bg-white"
+            />
+            <h2 className="text-2xl font-bold text-[#f7b267]">
+              QuickShopping
+            </h2>
+          </div>
 
           <p className="text-sm text-gray-300">
             Shop smarter with QuickShopping. Discover products,

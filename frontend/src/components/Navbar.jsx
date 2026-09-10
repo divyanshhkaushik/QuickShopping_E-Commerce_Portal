@@ -2,6 +2,7 @@ import React from 'react'
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import SidebarMenu from './SidebarMenu';
+import logo from '../assets/Logo.png';
 
 const Navbar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -167,9 +168,11 @@ const Navbar = () => {
               to="/dashboard"
               className="flex min-w-[150px] items-center gap-3 transition hover:opacity-90"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#f7b267] to-[#f28c28] text-lg font-bold text-[#111827]">
-                Q
-              </div>
+              <img
+                src={logo}
+                alt="QuickShopping logo"
+                className="h-12 w-12 rounded-full object-cover bg-white p-0 shadow-none"
+              />
               <span className="text-lg font-bold tracking-tight">QuickShopping</span>
             </Link>
 
@@ -240,10 +243,10 @@ const Navbar = () => {
           </div>
 
           <div className="border-t border-[#1f2937] bg-[#1f2937]">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-3 text-sm text-white sm:px-6 lg:px-8">
+            <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-3 text-sm text-white sm:px-6 lg:px-8">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="flex items-center gap-2 rounded-md border border-[#374151] bg-[#111827] px-3 py-2 font-medium text-white transition hover:border-[#f59e0b] hover:text-[#fef3c7]"
+                className="flex shrink-0 items-center gap-2 rounded-md border border-[#374151] bg-[#111827] px-3 py-2 font-medium text-white transition hover:border-[#f59e0b] hover:text-[#fef3c7]"
               >
                 <span className="flex flex-col gap-1">
                   <span className="h-0.5 w-5 rounded-full bg-white" />
@@ -253,7 +256,7 @@ const Navbar = () => {
                 <span>All</span>
               </button>
 
-              <div className="flex flex-1 flex-wrap items-center justify-center gap-1 sm:gap-2">
+              <div className="flex min-w-max items-center gap-1 sm:gap-2">
                 {topLinks.map((item) => (
                   <button
                     key={item}
@@ -270,7 +273,7 @@ const Navbar = () => {
                                 ? () => navigate("/orders")
                                 : undefined
                     }
-                    className="rounded-md px-2 py-1 text-[10px] transition hover:bg-[#374151] hover:text-white sm:text-xs lg:text-sm"
+                    className="shrink-0 rounded-md px-2 py-1 text-[10px] whitespace-nowrap transition hover:bg-[#374151] hover:text-white sm:text-xs lg:text-sm"
                   >
                     {item}
                   </button>
