@@ -5,6 +5,7 @@ const cloudinary = require("../config/cloudinary");
 const Product = require("../models/Product");
 
 // Register User
+
 const registerUser = async (req, res) => {
   try {
     const { name, phone, email, password } = req.body;
@@ -17,7 +18,8 @@ const registerUser = async (req, res) => {
         message: "Email already registered",
       });
     }
-
+    console.log("Content-Type:", req.headers["content-type"]);
+console.log("Body:", req.body);
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({

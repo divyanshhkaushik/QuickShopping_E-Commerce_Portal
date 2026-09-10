@@ -40,6 +40,7 @@ const createOrder = async (req, res) => {
 
       normalizedItems.push({
         productId: product._id,
+        sellerId: product.sellerId,
         productName: product.productName,
         image: product.images?.[0] || "",
         price: Number(product.price),
@@ -105,7 +106,85 @@ const getUserOrders = async (req, res) => {
   }
 };
 
+const getSellerOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({ "items.sellerId": req.user.id })
+      .sort({ createdAt: -1 });
+
+    const sellerOrders = orders.map((order) => {
+      const sellerItems = (order.items || []).filter(
+        (item) => String(item.sellerId) === String(req.user.id)
+      );
+
+      return {
+        ...order.toObject(),
+        items: sellerItems,
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      orders: sellerOrders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const allowedStatuses = ["Placed", "Dispatched"];
+
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid status is required",
+      });
+    }
+
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    const isSellerForThisOrder = (order.items || []).some(
+      (item) => String(item.sellerId) === String(req.user.id)
+    );
+
+    if (!isSellerForThisOrder) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to update this order",
+      });
+    }
+
+    order.status = status;
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Order status updated successfully",
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
+  getSellerOrders,
+  updateOrderStatus,
 };
