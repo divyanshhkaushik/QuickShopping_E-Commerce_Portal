@@ -1,10 +1,11 @@
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const Product = require("../models/Product");
+const Coupon = require("../models/Coupon");
 
 const createOrder = async (req, res) => {
   try {
-    const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
+    const { items, shippingAddress, paymentMethod, totalAmount, couponCode, discountAmount, finalAmount } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
@@ -60,14 +61,29 @@ const createOrder = async (req, res) => {
 
     const orderId = `QS-${Date.now()}-${Math.floor(Math.random() * 900 + 100)}`;
 
+    const finalTotal = Number(finalAmount || totalAmount || normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0));
+    const discountTotal = Number(discountAmount || 0);
+
     const order = await Order.create({
       userId: req.user.id,
       orderId,
       items: normalizedItems,
       shippingAddress,
       paymentMethod: paymentMethod || "UPI",
-      totalAmount: Number(totalAmount || normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)),
+      totalAmount: Number(totalAmount || finalTotal),
+      couponApplied: Boolean(couponCode),
+      couponCode: couponCode || "",
+      discountAmount: discountTotal,
+      finalAmount: finalTotal,
     });
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: String(couponCode).trim().toUpperCase() });
+      if (coupon) {
+        coupon.usedCount = Number(coupon.usedCount || 0) + 1;
+        await coupon.save();
+      }
+    }
 
     const productIds = normalizedItems.map((item) => item.productId.toString());
     await Cart.deleteMany({

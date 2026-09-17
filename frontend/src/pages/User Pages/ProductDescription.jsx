@@ -21,6 +21,8 @@ function ProductDescription() {
   const [cartItems, setCartItems] = useState([]);
   const [isInCart, setIsInCart] = useState(false);
   const [activeTrustFeature, setActiveTrustFeature] = useState(null);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [selectedCouponCode, setSelectedCouponCode] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
   const savedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -29,7 +31,21 @@ function ProductDescription() {
   useEffect(() => {
     fetchProduct();
     fetchCartItems();
+    fetchAvailableCoupons();
   }, [id]);
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/coupons/product/${id}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        setAvailableCoupons(data.coupons || []);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const fetchRelatedProducts = async (category) => {
     if (!category) return;
@@ -234,6 +250,29 @@ function ProductDescription() {
   const sellerShopName = sellerDetails.storeName || product?.sellerName || "Verified Seller";
   const sellerAddress = sellerDetails.pickupAddress || "Address not provided";
   const sellerGstNumber = sellerDetails.gstNumber || "GST not provided";
+  const bestCoupon = availableCoupons.length
+    ? [...availableCoupons].sort((a, b) => {
+        const aDiscount = a.couponType === "percentage" ? Number(a.discountValue) : Number(a.discountValue);
+        const bDiscount = b.couponType === "percentage" ? Number(b.discountValue) : Number(b.discountValue);
+        return bDiscount - aDiscount;
+      })[0]
+    : null;
+
+  const handleCouponApply = (coupon) => {
+    setSelectedCouponCode(coupon.code);
+    const savedCoupon = {
+      code: coupon.code,
+      discountAmount: coupon.couponType === "percentage"
+        ? (Number(product.price) * Number(coupon.discountValue)) / 100
+        : Number(coupon.discountValue),
+      finalAmount: coupon.couponType === "percentage"
+        ? Number(product.price) - ((Number(product.price) * Number(coupon.discountValue)) / 100)
+        : Number(product.price) - Number(coupon.discountValue),
+    };
+
+    localStorage.setItem("appliedCoupon", JSON.stringify(savedCoupon));
+    alert(`${coupon.code} applied successfully`);
+  };
 
   return (
     <div className="min-h-screen bg-[#eef3f8] text-[#111827]">
@@ -269,15 +308,84 @@ function ProductDescription() {
           <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr] lg:p-10">
             <ProductGallery product={product} mainImage={mainImage} setMainImage={setMainImage} />
 
-            <ProductSummary
-              product={product}
-              highlights={highlights}
-              productInfo={productInfo}
-              handleAddtoCart={handleAddtoCart}
-              isInCart={isInCart}
-              isOwnProduct={isOwnProduct}
-              navigate={navigate}
-            />
+            <div className="space-y-4">
+              <ProductSummary
+                product={product}
+                highlights={highlights}
+                productInfo={productInfo}
+                handleAddtoCart={handleAddtoCart}
+                isInCart={isInCart}
+                isOwnProduct={isOwnProduct}
+                navigate={navigate}
+              />
+
+              <div className="rounded-[1.5rem] border border-[#dfe7f0] bg-white p-5 shadow-sm">
+                <div className="mb-4 flex items-center justify-between gap-4">
+                  <h3 className="text-xl font-bold text-[#111827]">Available Offers</h3>
+                  {bestCoupon && (
+                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                      Best Offer
+                    </span>
+                  )}
+                </div>
+
+                {availableCoupons.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                    No offers available right now.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {availableCoupons.map((coupon) => {
+                      const discountText =
+                        coupon.couponType === "percentage"
+                          ? `${coupon.discountValue}% OFF`
+                          : `₹${coupon.discountValue} OFF`;
+
+                      const isBest = coupon.code === bestCoupon?.code;
+
+                      return (
+                        <div
+                          key={coupon._id}
+                          className={`rounded-2xl border p-3 ${
+                            isBest
+                              ? "border-emerald-300 bg-emerald-50"
+                              : "border-slate-200 bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="rounded-full bg-[#fff7ed] px-2 py-1 text-xs font-bold uppercase tracking-wide text-[#b45309]">
+                                  {coupon.code}
+                                </span>
+                                {isBest && (
+                                  <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                                    Best
+                                  </span>
+                                )}
+                              </div>
+                              <p className="mt-2 text-sm font-semibold text-slate-700">Get {discountText}</p>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleCouponApply(coupon)}
+                              className={`rounded-full px-3 py-2 text-xs font-bold ${
+                                selectedCouponCode === coupon.code
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-[#111827] text-white"
+                              }`}
+                            >
+                              {selectedCouponCode === coupon.code ? "Applied" : "Apply Coupon"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           <div className="border-t border-[#e2e8f0] bg-[#f8fafc] px-6 py-8 sm:px-8 lg:px-10">

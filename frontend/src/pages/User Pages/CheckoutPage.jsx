@@ -42,6 +42,11 @@ function CheckoutPage() {
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [orderId, setOrderId] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const checkoutItems = useMemo(() => {
     if (location.state?.items?.length) {
@@ -68,6 +73,16 @@ function CheckoutPage() {
 
   const deliveryFee = checkoutItems.length ? 49 : 0;
   const total = subtotal + deliveryFee;
+  const finalAmount = appliedCoupon ? Math.max(0, total - Number(appliedCoupon.discountAmount || 0)) : total;
+
+  useEffect(() => {
+    const savedCoupon = JSON.parse(localStorage.getItem("appliedCoupon") || "null");
+
+    if (savedCoupon?.code) {
+      setCouponCode(savedCoupon.code);
+      setAppliedCoupon(savedCoupon);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -168,6 +183,66 @@ function CheckoutPage() {
     });
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      setCouponSuccess("");
+      return;
+    }
+
+    try {
+      setCouponLoading(true);
+      setCouponError("");
+      setCouponSuccess("");
+
+      const productId = checkoutItems[0]?._id || checkoutItems[0]?.id || null;
+      const category = checkoutItems[0]?.category || "";
+
+      const res = await fetch(`${API_URL}/api/coupons/validate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: couponCode,
+          productId,
+          totalAmount: total,
+          category,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Coupon could not be applied");
+      }
+
+      const resolvedCoupon = {
+        code: data.coupon.code,
+        discountAmount: Number(data.discountAmount || 0),
+        finalAmount: Number(data.finalAmount || total),
+      };
+
+      setAppliedCoupon(resolvedCoupon);
+      setCouponSuccess(`${resolvedCoupon.code} applied successfully`);
+      localStorage.setItem("appliedCoupon", JSON.stringify(resolvedCoupon));
+    } catch (error) {
+      setCouponError(error.message || "Coupon could not be applied");
+      setAppliedCoupon(null);
+      localStorage.removeItem("appliedCoupon");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+    setCouponSuccess("Coupon removed");
+    localStorage.removeItem("appliedCoupon");
+  };
+
   const handlePayment = async () => {
     try {
       const payload = {
@@ -188,6 +263,10 @@ function CheckoutPage() {
         },
         paymentMethod,
         totalAmount: total,
+        couponApplied: Boolean(appliedCoupon),
+        couponCode: appliedCoupon?.code || "",
+        discountAmount: appliedCoupon?.discountAmount || 0,
+        finalAmount: finalAmount,
       };
 
       const res = await fetch(`${API_URL}/api/orders/create`, {
@@ -259,9 +338,51 @@ function CheckoutPage() {
           <span>Delivery</span>
           <span>₹{deliveryFee}</span>
         </div>
+
+        {appliedCoupon ? (
+          <div className="flex justify-between py-2 text-sm text-emerald-600">
+            <span>Discount ({appliedCoupon.code})</span>
+            <span>-₹{Number(appliedCoupon.discountAmount || 0)}</span>
+          </div>
+        ) : null}
+
+        <div className="mt-2 rounded-xl border border-dashed border-slate-200 bg-white p-3">
+          <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Coupon Code</label>
+          <div className="mt-2 flex gap-2">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              placeholder="SAVE10"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            />
+            {appliedCoupon ? (
+              <button
+                type="button"
+                onClick={handleRemoveCoupon}
+                className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={couponLoading}
+                className="rounded-xl bg-[#111827] px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+              >
+                {couponLoading ? "Applying..." : "Apply"}
+              </button>
+            )}
+          </div>
+
+          {couponError && <p className="mt-2 text-xs font-medium text-red-600">{couponError}</p>}
+          {couponSuccess && <p className="mt-2 text-xs font-medium text-emerald-600">{couponSuccess}</p>}
+        </div>
+
         <div className="flex justify-between border-t border-slate-200 pt-3 text-lg font-bold text-slate-900">
-          <span>Total Amount</span>
-          <span>₹{total}</span>
+          <span>Final Amount</span>
+          <span>₹{finalAmount}</span>
         </div>
       </div>
 
@@ -464,6 +585,16 @@ function CheckoutPage() {
         <div className="flex justify-between text-sm text-slate-600">
           <span>Order Total</span>
           <span>₹{total}</span>
+        </div>
+        {appliedCoupon && (
+          <div className="mt-2 flex justify-between text-sm text-emerald-600">
+            <span>Coupon Discount ({appliedCoupon.code})</span>
+            <span>-₹{Number(appliedCoupon.discountAmount || 0)}</span>
+          </div>
+        )}
+        <div className="mt-2 flex justify-between border-t border-slate-200 pt-3 text-lg font-bold text-slate-900">
+          <span>Final Amount</span>
+          <span>₹{finalAmount}</span>
         </div>
       </div>
 

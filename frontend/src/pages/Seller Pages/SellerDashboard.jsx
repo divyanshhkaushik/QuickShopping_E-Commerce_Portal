@@ -13,7 +13,8 @@ function SellerDashboard() {
   const totalProducts = products.length;
 
   const totalStock = products.reduce(
-   (total, product) => total + Number(product.stock || 0),0
+    (total, product) => total + Number(product.stock || 0),
+    0
   );
 
   const totalRevenue = orders.reduce((total, order) => {
@@ -28,27 +29,27 @@ function SellerDashboard() {
   const pendingOrders = orders.filter((order) => order.status === "Placed").length;
 
   const stats = [
-  {
-    label: "Total Revenue",
-    value: `₹${totalRevenue.toLocaleString()}`,
-    color: "text-green-600",
-  },
-  {
-    label: "Products",
-    value: totalProducts,
-    color: "text-[#2563eb]",
-  },
-  {
-    label: "Total Stock",
-    value: totalStock,
-    color: "text-[#f59e0b]",
-  },
-  {
-    label: "Pending Orders",
-    value: pendingOrders,
-    color: "text-red-500",
-  },
-];
+    {
+      label: "Total Revenue",
+      value: `₹${totalRevenue.toLocaleString()}`,
+      color: "text-green-600",
+    },
+    {
+      label: "Products",
+      value: totalProducts,
+      color: "text-[#2563eb]",
+    },
+    {
+      label: "Total Stock",
+      value: totalStock,
+      color: "text-[#f59e0b]",
+    },
+    {
+      label: "Pending Orders",
+      value: pendingOrders,
+      color: "text-red-500",
+    },
+  ];
 
   const quickActions = [
     {
@@ -75,12 +76,13 @@ function SellerDashboard() {
       title: "Analytics",
       description: "View business insights.",
     },
+    {
+      to: "/seller/coupons",
+      icon: "🎟️",
+      title: "Coupon Handle",
+      description: "Create and manage discounts.",
+    },
   ];
-
-  useEffect(() => {
-    fetchMyProducts();
-    fetchSellerOrders();
-  }, []);
 
   const fetchMyProducts = async () => {
     try {
@@ -118,7 +120,10 @@ function SellerDashboard() {
     }
   };
 
-
+  useEffect(() => {
+    fetchMyProducts();
+    fetchSellerOrders();
+  }, []);
 
   return (
     <div className="shopping-page-shell text-[#111827]">
@@ -166,9 +171,7 @@ function SellerDashboard() {
         <section className="mt-10">
           <h2 className="mb-5 text-2xl font-bold text-[#111827]">Quick Actions</h2>
 
-          
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             {quickActions.map((action) => (
               <Link
                 key={action.title}
@@ -182,12 +185,8 @@ function SellerDashboard() {
           </div>
         </section>
 
-        {/* Recent Products */}
-
-<section className="mt-10">
-  <h2 className="mb-5 text-2xl font-bold text-[#111827]">
-    Recent Products
-  </h2>
+        <section className="mt-10">
+          <h2 className="mb-5 text-2xl font-bold text-[#111827]">Recent Products</h2>
 
           {loading ? (
             <div className="rounded-3xl bg-white p-8 shadow-lg">

@@ -13,6 +13,7 @@ import AddProduct from "./pages/Seller Pages/AddProduct";
 import EditProduct from "./pages/Seller Pages/EditProduct";
 import MyProducts from "./pages/Seller Pages/MyProducts";
 import SellerOrdersPage from "./pages/Seller Pages/SellerOrdersPage";
+import SellerCouponManagement from "./pages/Seller Pages/SellerCouponManagement";
 import ProductDescription from "./pages/User Pages/ProductDescription";
 import MyCart from "./pages/User Pages/MyCart";
 import ContactUs from "./pages/User Pages/ContactUs";
@@ -43,6 +44,7 @@ function App() {
         <Route path="/seller/edit-product/:id" element={<EditProduct />} />
         <Route path="/seller/products" element={<MyProducts />}/>
         <Route path="/seller/orders" element={<SellerOrdersPage />} />
+        <Route path="/seller/coupons" element={<SellerCouponManagement />} />
         <Route path="/product/:id" element={<ProductDescription/>}/>
         <Route path="/history" element={<BrowsingHistory/>}/>
       </Routes>
