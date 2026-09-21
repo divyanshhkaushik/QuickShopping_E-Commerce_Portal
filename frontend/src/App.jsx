@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ProductChatWidget from "./components/ProductChatWidget";
 
 import LandingPage from "./pages/User Pages/LandingPage";
 import RegisterPage from "./pages/User Pages/RegisterPage";
@@ -48,6 +49,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDescription/>}/>
         <Route path="/history" element={<BrowsingHistory/>}/>
       </Routes>
+      <ProductChatWidget />
     </BrowserRouter>
   );
 }

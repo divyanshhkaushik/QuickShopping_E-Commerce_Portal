@@ -8,6 +8,7 @@ const cartRoutes = require("./routes/cartRoutes");
 const historyRoutes = require("./routes/historyRoutes"); // Import history routes
 const orderRoutes = require("./routes/orderRoutes");
 const couponRoutes = require("./routes/couponRoutes");
+const chatbotRoutes = require("./routes/chatbotRoutes");
 
 const app = express();
 app.use(cookieParser()); // Use cookie-parser
@@ -31,4 +32,5 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/history", historyRoutes); 
 app.use("/api/orders", orderRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 module.exports = app;
