@@ -93,7 +93,15 @@ function SellerOrdersPage() {
           <div className="space-y-6">
             {orders.map((order) => {
               const address = order.shippingAddress || {};
+              const isCancelled = order.status === "Cancelled";
+              const isCancellationRequested = Boolean(order.cancellation?.requested);
               const isDispatched = order.status === "Dispatched";
+              const displayStatus =
+                isCancelled
+                  ? "Cancelled"
+                  : isCancellationRequested
+                  ? "Cancellation Requested"
+                  : order.status;
 
               return (
                 <div key={order._id} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60">
@@ -106,15 +114,19 @@ function SellerOrdersPage() {
                     <div className="flex items-center gap-3">
                       <span
                         className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
-                          isDispatched
+                          isCancelled
+                            ? "bg-red-100 text-red-700"
+                            : isCancellationRequested
+                            ? "bg-amber-100 text-amber-700"
+                            : isDispatched
                             ? "bg-blue-100 text-blue-700"
                             : "bg-amber-100 text-amber-700"
                         }`}
                       >
-                        {order.status}
+                        {displayStatus}
                       </span>
 
-                      {!isDispatched && (
+                      {!isDispatched && !isCancelled && (
                         <button
                           type="button"
                           onClick={() => handleDispatchOrder(order._id)}
@@ -126,6 +138,20 @@ function SellerOrdersPage() {
                       )}
                     </div>
                   </div>
+
+                  {order.cancellation?.reason ? (
+                    <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                      <p className="font-bold uppercase tracking-[0.12em] text-amber-700">Customer Cancellation Info</p>
+                      <p className="mt-2"><span className="font-semibold">Reason type:</span> {order.cancellation.reasonType}</p>
+                      <p className="mt-1"><span className="font-semibold">Reason:</span> {order.cancellation.reason}</p>
+                      <p className="mt-1"><span className="font-semibold">Details:</span> {order.cancellation.details}</p>
+                      {order.cancellation.customerMessage ? (
+                        <p className="mt-2 rounded-xl bg-white/70 p-3 font-medium text-amber-800">
+                          {order.cancellation.customerMessage}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
                     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">

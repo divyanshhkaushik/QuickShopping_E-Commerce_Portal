@@ -107,11 +107,17 @@ const Navbar = () => {
       return;
     }
 
-    const matches = products.filter((product) =>
-      (product.productName || "")
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
+    const normalizedSearchTerm = searchTerm.toLowerCase();
+
+    const matches = products.filter((product) => {
+      const productName = (product.productName || "").toLowerCase();
+      const productCategory = (product.category || "").toLowerCase();
+
+      return (
+        productName.includes(normalizedSearchTerm) ||
+        productCategory.includes(normalizedSearchTerm)
+      );
+    });
 
     setFilteredProducts(matches);
   }, [searchTerm, products]);
@@ -218,6 +224,7 @@ const Navbar = () => {
                         <p className="text-sm font-medium text-gray-800">
                           {product.productName}
                         </p>
+                        <p className="text-xs text-gray-500">{product.category}</p>
                         <p className="text-sm text-[#2563eb]">₹{product.price}</p>
                       </div>
                     </Link>
@@ -243,41 +250,45 @@ const Navbar = () => {
           </div>
 
           <div className="border-t border-[#1f2937] bg-[#1f2937]">
-            <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-3 text-sm text-white sm:px-6 lg:px-8">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="flex shrink-0 items-center gap-2 rounded-md border border-[#374151] bg-[#111827] px-3 py-2 font-medium text-white transition hover:border-[#f59e0b] hover:text-[#fef3c7]"
-              >
-                <span className="flex flex-col gap-1">
-                  <span className="h-0.5 w-5 rounded-full bg-white" />
-                  <span className="h-0.5 w-5 rounded-full bg-white" />
-                  <span className="h-0.5 w-5 rounded-full bg-white" />
-                </span>
-                <span>All</span>
-              </button>
+            <div className="mx-auto max-w-7xl px-4 py-3 text-sm text-white sm:px-6 lg:px-8">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="flex shrink-0 items-center gap-2 rounded-md border border-[#374151] bg-[#111827] px-3 py-2 font-medium text-white transition hover:border-[#f59e0b] hover:text-[#fef3c7]"
+                >
+                  <span className="flex flex-col gap-1">
+                    <span className="h-0.5 w-5 rounded-full bg-white" />
+                    <span className="h-0.5 w-5 rounded-full bg-white" />
+                    <span className="h-0.5 w-5 rounded-full bg-white" />
+                  </span>
+                  <span>All</span>
+                </button>
 
-              <div className="flex min-w-max items-center gap-1 sm:gap-2">
-                {topLinks.map((item) => (
-                  <button
-                    key={item}
-                    onClick={
-                      item === "Sell"
-                        ? handleSellClick
-                        : item === "Customer Service"
-                          ? handleCustomerServiceClick
-                          : item === "Logout"
-                            ? handleLogout
-                            : item === "Browser History"
-                              ? handleHistoryClick
-                              : item === "Return & Orders" || item === "Buy Again"
-                                ? () => navigate("/orders")
-                                : undefined
-                    }
-                    className="shrink-0 rounded-md px-2 py-1 text-[10px] whitespace-nowrap transition hover:bg-[#374151] hover:text-white sm:text-xs lg:text-sm"
-                  >
-                    {item}
-                  </button>
-                ))}
+                <div className="flex-1 overflow-x-auto">
+                  <div className="flex min-w-max items-center justify-center gap-1 sm:gap-2">
+                    {topLinks.map((item) => (
+                      <button
+                        key={item}
+                        onClick={
+                          item === "Sell"
+                            ? handleSellClick
+                            : item === "Customer Service"
+                              ? handleCustomerServiceClick
+                              : item === "Logout"
+                                ? handleLogout
+                                : item === "Browser History"
+                                  ? handleHistoryClick
+                                  : item === "Return & Orders" || item === "Buy Again"
+                                    ? () => navigate("/orders")
+                                    : undefined
+                        }
+                        className="shrink-0 rounded-md px-2 py-1 text-[10px] whitespace-nowrap transition hover:bg-[#374151] hover:text-white sm:text-xs lg:text-sm"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

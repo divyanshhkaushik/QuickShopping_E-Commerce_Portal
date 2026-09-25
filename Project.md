@@ -1,18 +1,36 @@
-# QuickShopping
-
-QuickShopping is a full-stack e-commerce application for both customers and sellers. It covers product discovery, cart and checkout, seller onboarding, order management, account management, coupon support, and legal/help pages.
+# Project
 
 ## Overview
 
-The project is split into two applications:
+QuickShopping is a full-stack e-commerce platform for customers and sellers. Customers can browse products, manage cart items, place orders, maintain addresses, track history, and manage their accounts. Sellers can onboard themselves, create and manage listings, update product visibility, handle orders, and manage coupons.
 
-- `frontend/`: React + Vite client
+The project is split into two major parts:
+
+- `frontend/`: React + Vite user interface
 - `backend/`: Node.js + Express API with MongoDB
 
-The platform supports two main roles:
+## Current Core Flows
 
-- Customer: browse, manage cart quantities, place orders, cancel orders, manage addresses, and update account details
-- Seller: onboard as a seller, add and edit products, mark products active/inactive, handle orders, and manage coupons
+### Customer
+
+- Register and log in
+- Browse dashboard and category pages
+- Open product detail pages
+- Add to cart with quantity controls capped by stock
+- Buy now and adjust quantity at checkout
+- Place orders and review order history
+- Cancel orders or request cancellation after dispatch
+- Manage saved addresses
+- Update profile and reset password with OTP flow
+
+### Seller
+
+- Become a seller
+- Add new products with image uploads
+- Edit and delete products
+- Mark products `active` or `inactive`
+- Review seller orders and dispatch them
+- Manage coupons and coupon analytics
 
 ## Tech Stack
 
@@ -23,7 +41,6 @@ The platform supports two main roles:
 - React Router DOM
 - Tailwind CSS
 - Zod
-- Axios
 - React Google Maps API
 - Leaflet / React Leaflet
 
@@ -33,36 +50,20 @@ The platform supports two main roles:
 - Express
 - MongoDB + Mongoose
 - JWT authentication with cookies
-- Cloudinary
-- Multer
-- Nodemailer
-- Groq SDK
+- Cloudinary for product image uploads
+- Multer for multipart uploads
+- Nodemailer for email-based flows
+- Groq SDK for chatbot integration
 
-## Main Features
+## Important Features Implemented
 
-### Customer Features
-
-- Registration and login
-- Dashboard and category-based browsing
-- Product detail pages
-- Cart with quantity controls capped by stock
-- Buy now flow with quantity controls in checkout
-- Order placement and order history
-- Order cancellation with reason capture
-- Address management
-- Browsing history
-- Account profile editing
-- Multi-step password reset with OTP flow
-- FAQ and Terms and Conditions pages
-
-### Seller Features
-
-- Become a seller
-- Add products with image uploads
-- Edit and delete products
-- Mark products `active` or `inactive`
-- View seller orders and dispatch them
-- Manage coupons and coupon analytics
+- Product quantity controls on product detail, dashboard cards, and checkout
+- Stock-aware cart behavior
+- Seller product activation and inactivation
+- Order cancellation with mandatory reason capture
+- Dedicated pages for edit profile and password reset flow
+- OTP debug mode for testing password reset without SMTP delivery
+- FAQ page and Terms and Conditions page
 
 ## Notable Current Behavior
 
@@ -96,6 +97,22 @@ E-Commerce/
 └── Project.md
 ```
 
+## Backend Notes
+
+- API base is exposed through `/api/*`
+- Product APIs are under `/api/products`
+- Cart APIs are under `/api/cart`
+- Order APIs are under `/api/orders`
+- Auth and account APIs are under `/api/auth`
+- Chatbot API is under `/api/chatbot`
+
+## Frontend Notes
+
+- Main customer route entry is the dashboard at `/dashboard`
+- Product details are opened through `/product/:id`
+- Seller management lives under `/seller/*`
+- Account pages include profile, password reset, orders, addresses, FAQ, and terms pages
+
 ## Prerequisites
 
 Before running the project, make sure you have:
@@ -105,29 +122,23 @@ Before running the project, make sure you have:
 - MongoDB local instance or MongoDB Atlas
 - Cloudinary account for product image hosting
 
-## Environment Variables
+## Environment Requirements
 
-Create or update `backend/.env` with values like:
+Backend `.env` should define values such as:
 
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/quickshopping
-JWT_SECRET=your_secret
-GROQ_MODEL=llama-3.1-8b-instant
-
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-
-SMTP_EMAIL=your_email@example.com
-SMTP_APP_PASSWORD=your_app_password
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_FROM=your_email@example.com
-
-OTP_DEBUG_MODE=true
-```
+- `PORT`
+- `MONGO_URI`
+- `JWT_SECRET`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `SMTP_EMAIL`
+- `SMTP_APP_PASSWORD`
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_SECURE`
+- `SMTP_FROM`
+- `OTP_DEBUG_MODE`
 
 ## Installation
 
@@ -152,36 +163,32 @@ cd ../frontend
 npm install
 ```
 
-## Running the Project
+## Local Development
 
 ### Backend
 
 ```bash
 cd backend
+npm install
 npm run dev
 ```
-
-Backend runs on `http://localhost:5000`.
 
 ### Frontend
 
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-Frontend runs on `http://localhost:5173`.
+## Validation Commands
 
-## Useful Validation Commands
-
-### Frontend build check
+Useful local checks already used in this project:
 
 ```bash
 cd frontend
 npm run build
 ```
-
-### Backend wiring check
 
 ```bash
 cd backend
@@ -259,13 +266,6 @@ node -e "require('./src/app'); console.log('backend app loaded')"
 4. Review and dispatch orders
 5. Manage coupons and inventory visibility
 
-## Notes
+## Current Testing Note
 
-- The backend uses cookie-based JWT auth, so frontend requests that need authentication use credentials.
-- Product images are hosted through Cloudinary.
-- OTP debug mode is useful while SMTP transport is not available during testing.
-- Legal/help pages now include FAQ and Terms and Conditions.
-
-## License
-
-This project is currently unlicensed unless otherwise specified.
+Password reset supports a debug OTP mode through `OTP_DEBUG_MODE=true`, which returns the OTP in the API response for testing instead of relying on SMTP delivery.

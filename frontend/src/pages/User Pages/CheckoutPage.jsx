@@ -48,21 +48,30 @@ function CheckoutPage() {
   const [couponSuccess, setCouponSuccess] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
 
-  const checkoutItems = useMemo(() => {
+  const buildCheckoutItems = () => {
     if (location.state?.items?.length) {
-      return location.state.items;
+      return location.state.items.map((item) => ({
+        ...item,
+        quantity: Number(item.quantity || 1),
+      }));
     }
 
     if (location.state?.product) {
       return [
         {
           ...location.state.product,
-          quantity: location.state.quantity || 1,
+          quantity: Number(location.state.quantity || location.state.product.quantity || 1),
         },
       ];
     }
 
     return [];
+  };
+
+  const [checkoutItems, setCheckoutItems] = useState(buildCheckoutItems);
+
+  useEffect(() => {
+    setCheckoutItems(buildCheckoutItems());
   }, [location.state]);
 
   const subtotal = checkoutItems.reduce((sum, item) => {
@@ -74,6 +83,27 @@ function CheckoutPage() {
   const deliveryFee = checkoutItems.length ? 49 : 0;
   const total = subtotal + deliveryFee;
   const finalAmount = appliedCoupon ? Math.max(0, total - Number(appliedCoupon.discountAmount || 0)) : total;
+
+  const updateQuantity = (itemKey, direction) => {
+    setCheckoutItems((prev) =>
+      prev.map((item) => {
+        const key = item._id || item.id || item.productId?._id || item.productId;
+
+        if (String(key) !== String(itemKey)) {
+          return item;
+        }
+
+        const maxQuantity = Math.max(1, Number(item.stock || item.productId?.stock || 1));
+        const currentQuantity = Number(item.quantity || 1);
+        const nextQuantity = direction === "increase" ? Math.min(currentQuantity + 1, maxQuantity) : Math.max(currentQuantity - 1, 1);
+
+        return {
+          ...item,
+          quantity: nextQuantity,
+        };
+      })
+    );
+  };
 
   useEffect(() => {
     const savedCoupon = JSON.parse(localStorage.getItem("appliedCoupon") || "null");
@@ -317,7 +347,27 @@ function CheckoutPage() {
               <h3 className="text-lg font-bold text-slate-900">{item.productName}</h3>
               <p className="mt-1 text-sm text-slate-500">Brand: {item.brand || "QuickShopping"}</p>
               <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                <span>Qty: {item.quantity || 1}</span>
+                <div className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1">
+                  <button
+                    type="button"
+                    onClick={() => updateQuantity(item._id || item.id || item.productId?._id || item.productId, "decrease")}
+                    disabled={(item.quantity || 1) <= 1}
+                    className="h-8 w-8 rounded-full text-lg font-bold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <span className="min-w-8 text-center font-semibold text-slate-900">{item.quantity || 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateQuantity(item._id || item.id || item.productId?._id || item.productId, "increase")}
+                    disabled={(item.quantity || 1) >= Math.max(1, Number(item.stock || item.productId?.stock || 1))}
+                    className="h-8 w-8 rounded-full text-lg font-bold text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
                 <span>Price: ₹{item.price}</span>
               </div>
             </div>

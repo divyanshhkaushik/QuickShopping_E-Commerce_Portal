@@ -127,6 +127,7 @@ const updateProduct = async (req, res) => {
       brand,
       price,
       stock,
+      status,
     } = req.body;
 
     if (productName !== undefined) {
@@ -151,6 +152,19 @@ const updateProduct = async (req, res) => {
 
     if (stock !== undefined) {
       product.stock = Number(stock);
+    }
+
+    if (status !== undefined) {
+      const normalizedStatus = String(status).trim().toLowerCase();
+
+      if (!["active", "inactive"].includes(normalizedStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: "Status must be active or inactive",
+        });
+      }
+
+      product.status = normalizedStatus;
     }
 
     if (req.files && req.files.length > 0) {
@@ -194,6 +208,45 @@ const deleteProduct = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateProductStatus = async (req, res) => {
+  try {
+    const normalizedStatus = String(req.body.status || "").trim().toLowerCase();
+
+    if (!["active", "inactive"].includes(normalizedStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: "Status must be active or inactive",
+      });
+    }
+
+    const product = await Product.findOne({
+      _id: req.params.id,
+      sellerId: req.user.id,
+    });
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    product.status = normalizedStatus;
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Product marked as ${normalizedStatus}`,
+      product,
+    });
+  } catch (error) {
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -267,6 +320,7 @@ module.exports = {
   addProduct,
   getMyProducts,
   updateProduct,
+  updateProductStatus,
   deleteProduct,
   getAllProducts,
   getProductById,

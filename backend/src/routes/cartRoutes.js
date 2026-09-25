@@ -10,6 +10,7 @@ const {
     getCartCount,
     getCartItems,
     removeFromCart,
+    updateCartQuantity,
 } = require("../controllers/cartController");
 
 console.log({
@@ -21,6 +22,7 @@ console.log({
 
 router.get("/count", verifyUser, getCartCount);
 router.post("/add", verifyUser, addToCart);
+router.patch("/item/:productId", verifyUser, updateCartQuantity);
 router.get("/", verifyUser, getCartItems);
 router.delete("/:id", verifyUser, removeFromCart);
 

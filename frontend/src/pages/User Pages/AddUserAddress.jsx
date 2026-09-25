@@ -15,7 +15,7 @@ const mapContainerStyle = {
 function AddUserAddress() {
   const navigate = useNavigate();
   const mapRef = useRef(null);
-  const [position, setPosition] = useState(defaultCenter);
+  const [position, setPosition] = useState(defaultCenter); //track the position of the marker on the map
   const [formData, setFormData] = useState({
     label: "",
     addressLine1: "",
@@ -48,7 +48,8 @@ function AddUserAddress() {
     };
   };
 
-  const updateAddressFromLocation = (lat, lng) => {
+  const updateAddressFromLocation = (lat, lng) => { //Third way to set the location, 
+  // using reverse geocoding to get the address details from the coordinates
     if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
       setFormData((prev) => ({
         ...prev,
@@ -58,6 +59,7 @@ function AddUserAddress() {
       return;
     }
 
+    //Google Reverse Geocoding API to get the address details from the coordinates
     const geocoder = new window.google.maps.Geocoder();
 
     geocoder.geocode({ location: { lat, lng } }, (results, status) => {
@@ -86,18 +88,20 @@ function AddUserAddress() {
     });
   };
 
-  const handleMapClick = (event) => {
+  const handleMapClick = (event) => { //one of three ways to set the location
+    // Get the latitude and longitude from the click event
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
 
-    setPosition({ lat, lng });
+    setPosition({ lat, lng });  // Update the position state with the new coordinates
     if (mapRef.current) {
-      mapRef.current.panTo({ lat, lng });
+      mapRef.current.panTo({ lat, lng }); // Pan the map to the new coordinates
     }
-    updateAddressFromLocation(lat, lng);
+    updateAddressFromLocation(lat, lng); //Reverse geocode the coordinates to get the address details and update the form data
   };
 
-  const useCurrentLocation = () => {
+  const useCurrentLocation = () => {  //Second way to set the location,
+  // using the browser's geolocation API to get the user's current location
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by this browser.");
       return;
@@ -128,6 +132,7 @@ function AddUserAddress() {
       return;
     }
 
+    // Send the form data to the backend API to save the address
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const res = await fetch(`${API_URL}/api/auth/address`, {

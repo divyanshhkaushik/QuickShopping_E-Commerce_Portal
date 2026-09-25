@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 require("https").globalAgent.options.rejectUnauthorized = false;
 const express = require("express");
 const cors = require("cors"); 

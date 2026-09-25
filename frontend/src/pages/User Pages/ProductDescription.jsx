@@ -20,6 +20,8 @@ function ProductDescription() {
   const [mainImage, setMainImage] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [isInCart, setIsInCart] = useState(false);
+  const [cartItemId, setCartItemId] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [activeTrustFeature, setActiveTrustFeature] = useState(null);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [selectedCouponCode, setSelectedCouponCode] = useState("");
@@ -109,7 +111,11 @@ function ProductDescription() {
       if (res.ok) {
         const items = data.items || [];
         setCartItems(items);
-        setIsInCart(items.some((item) => item.productId === id || item.productId?._id === id));
+
+        const cartItem = items.find((item) => item.productId === id || item.productId?._id === id);
+        setIsInCart(Boolean(cartItem));
+        setCartItemId(cartItem?._id || null);
+        setSelectedQuantity(Number(cartItem?.quantity || 1));
       }
     } catch (error) {
       console.log(error);
@@ -119,6 +125,94 @@ function ProductDescription() {
   if (!product) {
     return <div className="shopping-page-shell p-10">Loading...</div>;
   }
+
+  const maxQuantity = Math.max(0, Number(product.stock || 0));
+
+  const clampQuantity = (value) => {
+    if (!maxQuantity) return 0;
+
+    return Math.min(Math.max(1, Number(value || 1)), maxQuantity);
+  };
+
+  const syncCartQuantity = async (nextQuantity) => {
+    if (!cartItemId) {
+      return;
+    }
+
+    const normalizedQuantity = Number(nextQuantity || 0);
+
+    try {
+      const res = await fetch(`${API_URL}/api/cart/item/${product._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ quantity: normalizedQuantity }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSelectedQuantity(Number(data.quantity || normalizedQuantity));
+        setIsInCart((data.quantity || normalizedQuantity) > 0);
+
+        if (Number(data.quantity || normalizedQuantity) <= 0) {
+          setCartItemId(null);
+          setCartItems((prev) => prev.filter((item) => !(item.productId === id || item.productId?._id === id)));
+          setSelectedQuantity(1);
+        }
+
+        window.dispatchEvent(new Event("cartUpdated"));
+      } else {
+        alert(data.message || "Unable to update cart quantity");
+      }
+    } catch (error) {
+      console.error("Cart quantity update error:", error);
+      alert("Unable to update cart quantity. Please try again.");
+    }
+  };
+
+  const handleDecreaseQuantity = () => {
+    if (selectedQuantity <= 1) return;
+
+    const nextQuantity = selectedQuantity - 1;
+    setSelectedQuantity(nextQuantity);
+
+    if (isInCart) {
+      syncCartQuantity(nextQuantity);
+    }
+  };
+
+  const handleIncreaseQuantity = () => {
+    if (selectedQuantity >= maxQuantity) return;
+
+    const nextQuantity = selectedQuantity + 1;
+    setSelectedQuantity(nextQuantity);
+
+    if (isInCart) {
+      syncCartQuantity(nextQuantity);
+    }
+  };
+
+  const handleCartQuantityDecrease = () => {
+    if (selectedQuantity <= 1) {
+      syncCartQuantity(0);
+      return;
+    }
+
+    const nextQuantity = selectedQuantity - 1;
+    setSelectedQuantity(nextQuantity);
+    syncCartQuantity(nextQuantity);
+  };
+
+  const handleCartQuantityIncrease = () => {
+    if (selectedQuantity >= maxQuantity) return;
+
+    const nextQuantity = selectedQuantity + 1;
+    setSelectedQuantity(nextQuantity);
+    syncCartQuantity(nextQuantity);
+  };
 
   const handleAddtoCart = async () => {
     if (isInCart) return;
@@ -133,6 +227,13 @@ function ProductDescription() {
       return;
     }
 
+    const quantity = clampQuantity(selectedQuantity);
+
+    if (!quantity) {
+      alert("This product is out of stock.");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/api/cart/add`, {
         method: "POST",
@@ -142,6 +243,7 @@ function ProductDescription() {
         credentials: "include",
         body: JSON.stringify({
           productId: product._id,
+          quantity,
         }),
       });
 
@@ -149,7 +251,12 @@ function ProductDescription() {
 
       if (res.ok) {
         setIsInCart(true);
-        setCartItems((prev) => [...prev, { productId: product._id }]);
+        setCartItemId(data.item?._id || product._id);
+        setSelectedQuantity(Number(data.item?.quantity || quantity));
+        setCartItems((prev) => {
+          const filtered = prev.filter((item) => !(item.productId === id || item.productId?._id === id));
+          return [...filtered, { _id: data.item?._id || product._id, productId: product._id, quantity: Number(data.item?.quantity || quantity) }];
+        });
         window.dispatchEvent(new Event("cartUpdated"));
         alert("Added to cart");
       } else {
@@ -165,6 +272,30 @@ function ProductDescription() {
     currentUserId &&
     product?.sellerId &&
     String(product.sellerId) === String(currentUserId);
+  const isInactive = String(product?.status || "active").toLowerCase() === "inactive";
+
+  if (isInactive && !isOwnProduct) {
+    return (
+      <div className="min-h-screen bg-[#eef3f8] text-[#111827]">
+        <Navbar />
+        <div className="mx-auto max-w-3xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-xl shadow-slate-200/50">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Unavailable</p>
+            <h1 className="mt-3 text-3xl font-black text-slate-900">This product is inactive right now</h1>
+            <p className="mt-3 text-slate-600">The seller has temporarily hidden this listing. Please check back later.</p>
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard")}
+              className="mt-6 rounded-full bg-[#111827] px-6 py-3 font-semibold text-white"
+            >
+              Back to Dashboard
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const highlights = [
     "Free delivery over ₹499",
@@ -314,6 +445,13 @@ function ProductDescription() {
                 highlights={highlights}
                 productInfo={productInfo}
                 handleAddtoCart={handleAddtoCart}
+                handleDecreaseQuantity={handleDecreaseQuantity}
+                handleIncreaseQuantity={handleIncreaseQuantity}
+                handleCartQuantityDecrease={handleCartQuantityDecrease}
+                handleCartQuantityIncrease={handleCartQuantityIncrease}
+                quantity={selectedQuantity}
+                isQuantityMaxed={selectedQuantity >= maxQuantity}
+                isQuantityAtMinimum={selectedQuantity <= 1}
                 isInCart={isInCart}
                 isOwnProduct={isOwnProduct}
                 navigate={navigate}

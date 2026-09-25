@@ -55,6 +55,12 @@ function Footer() {
                 FAQs
               </Link>
             </li>
+
+            <li>
+              <Link to="/terms-and-conditions" className="hover:text-white">
+                Terms and Conditions
+              </Link>
+            </li>
           </ul>
         </div>
 

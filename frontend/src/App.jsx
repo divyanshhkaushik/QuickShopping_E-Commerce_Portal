@@ -6,6 +6,10 @@ import RegisterPage from "./pages/User Pages/RegisterPage";
 import LoginPage from "./pages/User Pages/LoginPage";
 import Dashboard from "./pages/User Pages/Dashboard";
 import UserAccountPage from "./pages/User Pages/UserAccountPage";
+import EditProfilePage from "./pages/User Pages/EditProfilePage";
+import VerifyResetEmailPage from "./pages/User Pages/VerifyResetEmailPage";
+import VerifyResetOtpPage from "./pages/User Pages/VerifyResetOtpPage";
+import UpdatePasswordPage from "./pages/User Pages/UpdatePasswordPage";
 import UserAddressPage from "./pages/User Pages/UserAddressPage";
 import AddUserAddress from "./pages/User Pages/AddUserAddress";
 import SellerLandingPage from "./pages/Seller Pages/SellerLandingPage";
@@ -18,6 +22,8 @@ import SellerCouponManagement from "./pages/Seller Pages/SellerCouponManagement"
 import ProductDescription from "./pages/User Pages/ProductDescription";
 import MyCart from "./pages/User Pages/MyCart";
 import ContactUs from "./pages/User Pages/ContactUs";
+import FaqPage from "./pages/User Pages/FaqPage";
+import TermsAndConditionsPage from "./pages/User Pages/TermsAndConditionsPage";
 import BrowsingHistory from "./pages/User Pages/BrowsingHistory";
 import CategoryProductsPage from "./pages/User Pages/CategoryProductsPage";
 import CheckoutPage from "./pages/User Pages/CheckoutPage";
@@ -36,7 +42,13 @@ function App() {
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/cart" element={<MyCart />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
         <Route path="/userAccount" element={<UserAccountPage />} />
+        <Route path="/account/edit-profile" element={<EditProfilePage />} />
+        <Route path="/account/password/email" element={<VerifyResetEmailPage />} />
+        <Route path="/account/password/otp" element={<VerifyResetOtpPage />} />
+        <Route path="/account/password/update" element={<UpdatePasswordPage />} />
         <Route path="/addresses" element={<UserAddressPage />} />
         <Route path="/add-address" element={<AddUserAddress />} />
         <Route path="/become-seller" element={<SellerLandingPage />}/>

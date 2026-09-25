@@ -98,7 +98,50 @@ function Dashboard() {
     }
   };
 
-  const handleAddToCart = async (productId) => {
+  const getCartItemForProduct = (productId) =>
+    cartItems.find((item) => item.productId === productId || item.productId?._id === productId);
+
+  const getProductQuantity = (productId) => Number(getCartItemForProduct(productId)?.quantity || 0);
+
+  const updateCartQuantity = async (productId, nextQuantity) => {
+    const normalizedQuantity = Math.max(0, Number(nextQuantity || 0));
+
+    try {
+      const res = await fetch(`${API_URL}/api/cart/item/${productId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ quantity: normalizedQuantity }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        await fetchCartItems();
+        window.dispatchEvent(new Event("cartUpdated"));
+
+        if (normalizedQuantity <= 0) {
+          return;
+        }
+
+        return data;
+      }
+
+      alert(data.message || "Unable to update cart quantity");
+    } catch (error) {
+      console.log(error);
+      alert("Unable to update cart quantity. Please try again.");
+    }
+  };
+
+  const handleAddToCart = async (product) => {
+    if (!product || Number(product.stock || 0) < 1) {
+      alert("This product is out of stock.");
+      return;
+    }
+
     try {
       const res = await fetch(`${API_URL}/api/cart/add`, {
         method: "POST",
@@ -106,16 +149,19 @@ function Dashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({
+          productId: product._id,
+          quantity: 1,
+        }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        setCartItems((prev) => [...prev, { productId }]);
+        await fetchCartItems();
         window.dispatchEvent(new Event("cartUpdated"));
       } else {
-        alert(data.message);
+        alert(data.message || "Unable to add product to cart");
       }
     } catch (error) {
       console.log(error);
@@ -248,10 +294,10 @@ function Dashboard() {
         ) : (
           <div className="grid grid-cols-3 gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
             {products.map((product) => {
-              const productInCart = cartItems.some(
-                (item) =>
-                  item.productId === product._id || item.productId?._id === product._id
-              );
+              const productInCart = Boolean(getCartItemForProduct(product._id));
+              const quantity = getProductQuantity(product._id);
+              const maxQuantity = Math.max(0, Number(product.stock || 0));
+              const isInactive = String(product.status || "active").toLowerCase() === "inactive";
               const isOwnProduct =
                 currentUserId &&
                 product.sellerId &&
@@ -260,22 +306,42 @@ function Dashboard() {
               return (
                 <div
                   key={product._id}
-                  className="overflow-hidden rounded-xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg sm:rounded-2xl sm:shadow-lg"
+                  className={`overflow-hidden rounded-xl bg-white shadow-md transition sm:rounded-2xl sm:shadow-lg ${
+                    isInactive ? "opacity-60" : "hover:-translate-y-1 hover:shadow-lg"
+                  }`}
                 >
-                  <Link to={`/product/${product._id}`} className="block">
-                    <img
-                      src={product.images?.[0]}
-                      alt={product.productName}
-                      className="h-28 w-full object-cover sm:h-44 lg:h-60"
-                    />
-                  </Link>
+                  {isInactive ? (
+                    <div className="block cursor-not-allowed">
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.productName}
+                        className="h-28 w-full object-cover grayscale-[0.3] sm:h-44 lg:h-60"
+                      />
+                    </div>
+                  ) : (
+                    <Link to={`/product/${product._id}`} className="block">
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.productName}
+                        className="h-28 w-full object-cover sm:h-44 lg:h-60"
+                      />
+                    </Link>
+                  )}
 
                   <div className="p-2.5 sm:p-4">
-                    <Link to={`/product/${product._id}`} className="block">
-                      <h3 className="text-[11px] font-bold leading-tight text-[#111827] line-clamp-2 hover:text-[#2563eb] sm:text-base">
-                        {product.productName}
-                      </h3>
-                    </Link>
+                    {isInactive ? (
+                      <div className="block">
+                        <h3 className="text-[11px] font-bold leading-tight text-[#111827] line-clamp-2 sm:text-base">
+                          {product.productName}
+                        </h3>
+                      </div>
+                    ) : (
+                      <Link to={`/product/${product._id}`} className="block">
+                        <h3 className="text-[11px] font-bold leading-tight text-[#111827] line-clamp-2 hover:text-[#2563eb] sm:text-base">
+                          {product.productName}
+                        </h3>
+                      </Link>
+                    )}
 
                     <p className="mt-1 text-[10px] text-[#64748b] line-clamp-2 sm:text-sm">
                       <b>{product.brand}</b>
@@ -287,28 +353,58 @@ function Dashboard() {
                       </span>
                     </div>
 
-                    <p className="mt-1 text-[9px] text-green-600 sm:mt-2 sm:text-sm">
-                      In Stock
+                    <p className={`mt-1 text-[9px] sm:mt-2 sm:text-sm ${isInactive ? "text-slate-500" : "text-green-600"}`}>
+                      {isInactive ? "Inactive Listing" : maxQuantity > 0 ? `In Stock: ${maxQuantity} available` : "Out of Stock"}
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={() => handleAddToCart(product._id)}
-                      disabled={productInCart || isOwnProduct}
-                      className={`mt-2 w-full rounded-full py-1.5 text-[10px] font-medium sm:mt-4 sm:py-2 sm:text-sm ${
-                        productInCart
-                          ? "bg-green-500 text-white cursor-not-allowed"
-                          : isOwnProduct
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-[#ffd814] hover:bg-[#f7ca00]"
-                      }`}
-                    >
-                      {productInCart
-                        ? "✓ Added"
-                        : isOwnProduct
-                        ? "Your Product"
-                        : "Add to Cart"}
-                    </button>
+                    {isInactive ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="mt-2 w-full cursor-not-allowed rounded-full bg-slate-300 py-1.5 text-[10px] font-medium text-slate-600 sm:mt-4 sm:py-2 sm:text-sm"
+                      >
+                        Unavailable Right Now
+                      </button>
+                    ) : productInCart ? (
+                      <div className="mt-2 flex items-center justify-between rounded-full border border-[#dbeafe] bg-white px-2 py-1.5 shadow-sm sm:mt-4">
+                        <button
+                          type="button"
+                          onClick={() => updateCartQuantity(product._id, quantity - 1)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold text-[#2563eb] transition hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:text-[#cbd5e1]"
+                          disabled={isOwnProduct || quantity <= 1}
+                          aria-label="Decrease quantity"
+                        >
+                          -
+                        </button>
+
+                        <span className="min-w-8 px-2 text-center text-sm font-bold text-[#111827] sm:text-base">
+                          {quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => updateCartQuantity(product._id, quantity + 1)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold text-[#2563eb] transition hover:bg-[#eff6ff] disabled:cursor-not-allowed disabled:text-[#cbd5e1]"
+                          disabled={isOwnProduct || quantity >= maxQuantity}
+                          aria-label="Increase quantity"
+                        >
+                          +
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleAddToCart(product)}
+                        disabled={isOwnProduct || maxQuantity < 1}
+                        className={`mt-2 w-full rounded-full py-1.5 text-[10px] font-medium sm:mt-4 sm:py-2 sm:text-sm ${
+                          isOwnProduct || maxQuantity < 1
+                            ? "cursor-not-allowed bg-gray-300 text-gray-600"
+                            : "bg-[#ffd814] hover:bg-[#f7ca00]"
+                        }`}
+                      >
+                        {isOwnProduct ? "Your Product" : maxQuantity < 1 ? "Out of Stock" : "Add to Cart"}
+                      </button>
+                    )}
                   </div>
                 </div>
               );

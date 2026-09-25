@@ -9,6 +9,9 @@ const groqClient = process.env.GROQ_API_KEY
   ? new Groq({ apiKey: process.env.GROQ_API_KEY })
   : null;
 
+console.log("[chatbot] Groq client:", groqClient ? "configured" : "missing API key");
+console.log("[chatbot] Groq model:", DEFAULT_MODEL);
+
 const normalizeText = (value = "") => value.toString().trim().toLowerCase();
 
 const parseJsonObject = (content = "") => {
@@ -134,10 +137,36 @@ const extractSearchTerms = (query = "") => {
   );
 };
 
+const isNetworkBlockedResponse = (error) => { //If groq request is blocked by network policy,
+  //  the error message may contain certain keywords indicating the block.
+  //  This function checks for those keywords in the error message 
+  // to determine if the request was blocked.
+  const errorMessage = `${error?.message || ""} ${error?.cause?.message || ""}`.toLowerCase();
+
+  return (
+    errorMessage.includes("zscaler") ||
+    errorMessage.includes("category_denied") ||
+    errorMessage.includes("generative ai and ml applications") ||
+    errorMessage.includes("you don't have permission to visit this site") ||
+    errorMessage.includes("<!doctype html>")
+  );
+};
+
+const getSafeErrorMessage = (error, fallbackMessage) => {
+  if (isNetworkBlockedResponse(error)) {
+    return "Groq request blocked by network policy.";
+  }
+
+  return error?.message || fallbackMessage;
+};
+
 const buildFilterPayload = async (query, categories, brands) => {
   const regexFilters = extractPriceFilters(query);
 
+  console.log("[chatbot] filter extraction query:", query);
+
   if (!groqClient) {
+    console.log("[chatbot] Groq unavailable for filter extraction, using fallback parsing");
     return {
       intent: "product_search",
       minPrice: regexFilters.minPrice,
@@ -149,9 +178,10 @@ const buildFilterPayload = async (query, categories, brands) => {
   }
 
   try {
+    console.log("[chatbot] sending filter extraction request to Groq");
     const completion = await groqClient.chat.completions.create({
       model: DEFAULT_MODEL,
-      temperature: 0.2,
+      temperature: 0.2,  //low temperature for more deterministic output
       messages: [
         {
           role: "system",
@@ -171,11 +201,15 @@ const buildFilterPayload = async (query, categories, brands) => {
     });
 
     const rawContent = completion.choices?.[0]?.message?.content || "";
+    console.log("[chatbot] Groq raw filter response:", rawContent);
     const parsedContent = parseJsonObject(rawContent);
 
     if (!parsedContent) {
+      console.warn("[chatbot] Groq filter response was not valid JSON");
       throw new Error("Unable to parse Groq filter response");
     }
+
+    console.log("[chatbot] parsed Groq filters:", parsedContent);
 
     return {
       intent: parsedContent.intent === "general_help" ? "general_help" : "product_search",
@@ -188,6 +222,7 @@ const buildFilterPayload = async (query, categories, brands) => {
         : extractSearchTerms(query),
     };
   } catch (error) {
+    console.error("[chatbot] Groq filter extraction failed:", getSafeErrorMessage(error, "Filter extraction failed"));
     return {
       intent: "product_search",
       minPrice: regexFilters.minPrice,
@@ -305,7 +340,7 @@ const filterProducts = (products, filters, fallbackKeywords = []) => {
 
 const buildFallbackReply = (query, matchedProducts, filters) => {
   if (!matchedProducts.length) {
-    return "We don't have that.";
+    return "We couldn’t find any products matching your request.";
   }
 
   const priceHint = filters.minPrice !== null || filters.maxPrice !== null
@@ -317,10 +352,17 @@ const buildFallbackReply = (query, matchedProducts, filters) => {
 
 const buildAssistantReply = async (query, matchedProducts, filters) => {
   if (!groqClient) {
+    console.log("[chatbot] Groq unavailable for assistant reply, using fallback text");
+    return buildFallbackReply(query, matchedProducts, filters);
+  }
+
+  if (!matchedProducts.length) {
     return buildFallbackReply(query, matchedProducts, filters);
   }
 
   try {
+    console.log("[chatbot] sending assistant reply request to Groq");
+    console.log("[chatbot] matched products passed to Groq:", matchedProducts.length);
     const completion = await groqClient.chat.completions.create({
       model: DEFAULT_MODEL,
       temperature: 0.5,
@@ -346,8 +388,13 @@ const buildAssistantReply = async (query, matchedProducts, filters) => {
       ],
     });
 
-    return completion.choices?.[0]?.message?.content?.trim() || buildFallbackReply(query, matchedProducts, filters);
+    const assistantReply = completion.choices?.[0]?.message?.content?.trim() || "";
+
+    console.log("[chatbot] Groq assistant reply:", assistantReply || "<empty>");
+
+    return assistantReply || buildFallbackReply(query, matchedProducts, filters);
   } catch (error) {
+    console.error("[chatbot] Groq assistant reply failed:", getSafeErrorMessage(error, "Assistant reply failed"));
     return buildFallbackReply(query, matchedProducts, filters);
   }
 };
@@ -355,6 +402,8 @@ const buildAssistantReply = async (query, matchedProducts, filters) => {
 const sendChatbotMessage = async (req, res) => {
   try {
     const message = req.body?.message?.trim();
+
+    console.log("[chatbot] incoming message:", message || "<empty>");
 
     if (!message) {
       return res.status(400).json({
@@ -370,6 +419,9 @@ const sendChatbotMessage = async (req, res) => {
     const fallbackKeywords = extractSearchTerms(message);
 
     const matchedProducts = filterProducts(products, filters, fallbackKeywords);
+    console.log("[chatbot] filters used:", filters);
+    console.log("[chatbot] fallback keywords:", fallbackKeywords);
+    console.log("[chatbot] matched product count:", matchedProducts.length);
     const assistantReply = await buildAssistantReply(message, matchedProducts, filters);
     const greetingPrompts = matchedProducts.length
       ? [
@@ -387,6 +439,7 @@ const sendChatbotMessage = async (req, res) => {
       greetingPrompts,
     });
   } catch (error) {
+    console.error("[chatbot] request failed:", getSafeErrorMessage(error, "Request failed"));
     return res.status(500).json({
       success: false,
       message: error.message || "Unable to process chatbot request",

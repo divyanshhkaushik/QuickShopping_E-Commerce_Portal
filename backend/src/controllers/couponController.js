@@ -90,7 +90,7 @@ const createCoupon = async (req, res) => {
       });
     }
 
-    const coupon = await Coupon.create({
+    const coupon = await Coupon.create({ 
       code: normalizedCode,
       sellerId: req.user.id,
       couponType,
@@ -132,7 +132,7 @@ const updateCoupon = async (req, res) => {
       });
     }
 
-    const payload = req.body;
+    const payload = req.body; 
 
     if (payload.code) {
       coupon.code = String(payload.code).trim().toUpperCase();

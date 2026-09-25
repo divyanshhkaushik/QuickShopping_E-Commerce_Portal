@@ -126,6 +126,7 @@ function CategoryProductsPage() {
               const productInCart = cartItems.some(
                 (item) => item.productId === product._id || item.productId?._id === product._id
               );
+              const isInactive = String(product.status || "active").toLowerCase() === "inactive";
               const isOwnProduct =
                 currentUserId &&
                 product.sellerId &&
@@ -134,22 +135,42 @@ function CategoryProductsPage() {
               return (
                 <div
                   key={product._id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl"
+                  className={`overflow-hidden rounded-2xl bg-white shadow-lg transition ${
+                    isInactive ? "opacity-60" : "hover:-translate-y-1 hover:shadow-xl"
+                  }`}
                 >
-                  <Link to={`/product/${product._id}`} className="block">
-                    <img
-                      src={product.images?.[0]}
-                      alt={product.productName}
-                      className="h-60 w-full object-cover"
-                    />
-                  </Link>
+                  {isInactive ? (
+                    <div className="block cursor-not-allowed">
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.productName}
+                        className="h-60 w-full object-cover grayscale-[0.3]"
+                      />
+                    </div>
+                  ) : (
+                    <Link to={`/product/${product._id}`} className="block">
+                      <img
+                        src={product.images?.[0]}
+                        alt={product.productName}
+                        className="h-60 w-full object-cover"
+                      />
+                    </Link>
+                  )}
 
                   <div className="p-4">
-                    <Link to={`/product/${product._id}`} className="block">
-                      <h3 className="text-xl font-bold text-[#111827] line-clamp-2 hover:text-[#2563eb]">
-                        {product.productName}
-                      </h3>
-                    </Link>
+                    {isInactive ? (
+                      <div className="block">
+                        <h3 className="text-xl font-bold text-[#111827] line-clamp-2">
+                          {product.productName}
+                        </h3>
+                      </div>
+                    ) : (
+                      <Link to={`/product/${product._id}`} className="block">
+                        <h3 className="text-xl font-bold text-[#111827] line-clamp-2 hover:text-[#2563eb]">
+                          {product.productName}
+                        </h3>
+                      </Link>
+                    )}
 
                     <p className="mt-2 text-sm text-[#64748b] line-clamp-2">
                       <b>{product.brand}</b>
@@ -159,17 +180,21 @@ function CategoryProductsPage() {
                       <span className="text-2xl font-bold text-[#2563eb]">₹{product.price}</span>
                     </div>
 
-                    <p className="mt-2 text-sm text-green-600">In Stock: Selling Fast!!</p>
+                    <p className={`mt-2 text-sm ${isInactive ? "text-slate-500" : "text-green-600"}`}>
+                      {isInactive ? "Inactive Listing" : "In Stock: Selling Fast!!"}
+                    </p>
 
                     <button
                       type="button"
                       onClick={() => handleAddToCart(product._id)}
-                      disabled={productInCart || isOwnProduct}
+                      disabled={productInCart || isOwnProduct || isInactive}
                       className={`mt-4 w-full rounded-full py-2 font-medium ${
                         productInCart
                           ? "bg-green-500 text-white cursor-not-allowed"
                           : isOwnProduct
                           ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                        : isInactive
+                          ? "bg-slate-300 text-slate-600 cursor-not-allowed"
                           : "bg-[#ffd814] hover:bg-[#f7ca00]"
                       }`}
                     >
@@ -177,6 +202,8 @@ function CategoryProductsPage() {
                         ? "✓ Added to Cart"
                         : isOwnProduct
                         ? "Your Product"
+                        : isInactive
+                        ? "Unavailable Right Now"
                         : "Add to Cart"}
                     </button>
                   </div>

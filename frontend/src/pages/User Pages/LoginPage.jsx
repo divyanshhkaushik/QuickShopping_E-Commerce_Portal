@@ -22,12 +22,12 @@ function LoginPage() {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
+        method: "POST", 
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(loginData),
+        body: JSON.stringify(loginData), //
       });
 
       const data = await res.json();

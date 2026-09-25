@@ -3,6 +3,13 @@ function ProductSummary({
   highlights,
   productInfo,
   handleAddtoCart,
+  handleDecreaseQuantity,
+  handleIncreaseQuantity,
+  handleCartQuantityDecrease,
+  handleCartQuantityIncrease,
+  quantity,
+  isQuantityMaxed,
+  isQuantityAtMinimum,
   isInCart,
   isOwnProduct,
   navigate,
@@ -44,22 +51,59 @@ function ProductSummary({
             </div>
           ))}
         </div>
+
+        <div className="mt-6 rounded-2xl border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-[#111827]">Quantity</p>
+              <p className="text-xs text-[#64748b]">Max {product.stock || 0} available</p>
+            </div>
+
+            <div className="flex items-center rounded-full border border-[#dbeafe] bg-white p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={isInCart ? handleCartQuantityDecrease : handleDecreaseQuantity}
+                disabled={isOwnProduct || (!isInCart && isQuantityAtMinimum)}
+                className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold text-[#2563eb] transition disabled:cursor-not-allowed disabled:text-[#cbd5e1]"
+                aria-label="Decrease quantity"
+              >
+                -
+              </button>
+
+              <span className="min-w-12 px-3 text-center text-base font-bold text-[#111827]">{quantity}</span>
+
+              <button
+                type="button"
+                onClick={isInCart ? handleCartQuantityIncrease : handleIncreaseQuantity}
+                disabled={isOwnProduct || isQuantityMaxed}
+                className="flex h-10 w-10 items-center justify-center rounded-full text-xl font-bold text-[#2563eb] transition disabled:cursor-not-allowed disabled:text-[#cbd5e1]"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-8 space-y-3">
-        <button
-          onClick={handleAddtoCart}
-          disabled={isInCart || isOwnProduct}
-          className={`w-full rounded-full py-3.5 text-base font-semibold transition ${
-            isInCart
-              ? "cursor-not-allowed bg-green-500 text-white"
-              : isOwnProduct
-              ? "cursor-not-allowed bg-gray-300 text-gray-600"
-              : "bg-[#ffd814] text-[#111827] hover:bg-[#f7ca00]"
-          }`}
-        >
-          {isInCart ? "✓ Added to Cart" : isOwnProduct ? "Your Product" : "Add to Cart"}
-        </button>
+        {isInCart ? (
+          <div className="rounded-full bg-green-500 px-4 py-3 text-center text-base font-semibold text-white">
+            ✓ Added to Cart
+          </div>
+        ) : (
+          <button
+            onClick={handleAddtoCart}
+            disabled={isOwnProduct}
+            className={`w-full rounded-full py-3.5 text-base font-semibold transition ${
+              isOwnProduct
+                ? "cursor-not-allowed bg-gray-300 text-gray-600"
+                : "bg-[#ffd814] text-[#111827] hover:bg-[#f7ca00]"
+            }`}
+          >
+            {isOwnProduct ? "Your Product" : "Add to Cart"}
+          </button>
+        )}
 
         <button
           onClick={() => {
@@ -72,15 +116,15 @@ function ProductSummary({
               state: {
                 product: {
                   ...product,
-                  quantity: 1,
+                  quantity,
                 },
-                quantity: 1,
+                quantity,
               },
             });
           }}
-          disabled={isOwnProduct}
+          disabled={isOwnProduct || !product.stock}
           className={`w-full rounded-full py-3.5 text-base font-semibold transition ${
-            isOwnProduct
+            isOwnProduct || !product.stock
               ? "cursor-not-allowed bg-gray-300 text-gray-600"
               : "bg-[#111827] text-white hover:bg-[#1f2937]"
           }`}

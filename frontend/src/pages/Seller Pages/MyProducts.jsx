@@ -5,6 +5,8 @@ function MyProducts() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     fetchProducts();
@@ -13,7 +15,7 @@ function MyProducts() {
   const fetchProducts = async () => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/my-products`,
+        `${API_URL}/api/products/my-products`,
         {
           credentials: "include",
         }
@@ -38,7 +40,7 @@ function MyProducts() {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/products/${productId}`,
+        `${API_URL}/api/products/${productId}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -58,6 +60,39 @@ function MyProducts() {
       alert(data.message);
     } catch (error) {
       alert(error.message);
+    }
+  };
+
+  const handleStatusToggle = async (product) => {
+    const nextStatus = product.status === "inactive" ? "active" : "inactive";
+
+    try {
+      setStatusUpdatingId(product._id);
+
+      const res = await fetch(`${API_URL}/api/products/${product._id}/status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Unable to update product status");
+      }
+
+      setProducts((prevProducts) =>
+        prevProducts.map((item) =>
+          item._id === product._id ? { ...item, status: data.product.status } : item
+        )
+      );
+    } catch (error) {
+      alert(error.message || "Unable to update product status");
+    } finally {
+      setStatusUpdatingId(null);
     }
   };
 
@@ -95,7 +130,10 @@ function MyProducts() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
+            {products.map((product) => {
+              const isInactive = String(product.status || "active").toLowerCase() === "inactive";
+
+              return (
               <div
                 key={product._id}
                 className="overflow-hidden rounded-3xl bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl"
@@ -103,13 +141,25 @@ function MyProducts() {
                 <img
                   src={product.images?.[0]}
                   alt={product.productName}
-                  className="h-48 w-full object-cover"
+                  className={`h-48 w-full object-cover ${isInactive ? "opacity-60 grayscale-[0.25]" : ""}`}
                 />
 
                 <div className="p-5">
-                  <h3 className="text-lg font-bold text-[#111827]">
-                    {product.productName}
-                  </h3>
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-bold text-[#111827]">
+                      {product.productName}
+                    </h3>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] ${
+                        isInactive
+                          ? "bg-slate-200 text-slate-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {isInactive ? "Inactive" : "Active"}
+                    </span>
+                  </div>
 
                   <p className="mt-2 text-sm text-[#64748b] line-clamp-2">
                     {product.description}
@@ -125,13 +175,28 @@ function MyProducts() {
                     </span>
                   </div>
 
-                  <div className="mt-5 flex gap-3">
+                  <div className="mt-5 flex flex-wrap gap-3">
                     <button
                       type="button"
                       onClick={() => navigate(`/seller/edit-product/${product._id}`)}
                       className="flex-1 rounded-lg bg-[#2563eb] py-2 font-medium text-white"
                     >
                       Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusToggle(product)}
+                      disabled={statusUpdatingId === product._id}
+                      className={`flex-1 rounded-lg py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isInactive ? "bg-emerald-600" : "bg-slate-700"
+                      }`}
+                    >
+                      {statusUpdatingId === product._id
+                        ? "Updating..."
+                        : isInactive
+                        ? "Mark Active"
+                        : "Mark Inactive"}
                     </button>
 
                     <button
@@ -148,7 +213,7 @@ function MyProducts() {
                   </div>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
         )}
       </div>

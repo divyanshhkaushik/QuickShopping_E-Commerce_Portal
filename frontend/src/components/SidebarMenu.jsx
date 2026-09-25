@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const defaultCategories = [
   "Electronics",
@@ -128,6 +129,11 @@ function SidebarMenu({
                   {item}
                 </li>
               ))}
+              <li className="rounded-lg px-3 py-2 hover:bg-[#e0f2fe]">
+                <Link to="/terms-and-conditions" onClick={onClose} className="block w-full">
+                  Terms and Conditions
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

@@ -7,6 +7,7 @@ const {
     addProduct,
     getMyProducts,
     updateProduct,
+    updateProductStatus,
     deleteProduct,
     getAllProducts,
     getProductById,
@@ -19,6 +20,7 @@ const upload = require("../middleware/upload");
 router.put("/become-seller", verifyUser, becomeSeller);
 router.post("/add-product", verifyUser, upload.array("images", 5), addProduct);
 router.get("/my-products", verifyUser, getMyProducts);
+router.patch("/:id/status", verifyUser, updateProductStatus);
 router.put("/:id", verifyUser, upload.array("images", 5), updateProduct);
 router.delete("/:id", verifyUser, deleteProduct);
 router.get("/", getAllProducts);

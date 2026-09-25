@@ -171,6 +171,13 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
+    if (order.status === "Cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "Cancelled orders cannot be dispatched",
+      });
+    }
+
     const isSellerForThisOrder = (order.items || []).some(
       (item) => String(item.sellerId) === String(req.user.id)
     );
@@ -198,9 +205,83 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+const cancelOrder = async (req, res) => {
+  try {
+    const { reasonType, reason, details } = req.body;
+
+    if (!reasonType || !reason || !details) {
+      return res.status(400).json({
+        success: false,
+        message: "Cancellation reason, reason type, and details are required",
+      });
+    }
+
+    const order = await Order.findOne({
+      _id: req.params.id,
+      userId: req.user.id,
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    if (order.status === "Cancelled" && order.cancellation?.requested) {
+      return res.status(400).json({
+        success: false,
+        message: "This order is already cancelled",
+      });
+    }
+
+    const isDispatched = order.status === "Dispatched";
+    const customerMessage = isDispatched
+      ? "Since your order is already dispatched, you can refuse delivery when our delivery partner arrives at your doorstep."
+      : "Your order has been cancelled successfully.";
+
+    if (!isDispatched) {
+      for (const item of order.items || []) {
+        const product = await Product.findById(item.productId);
+
+        if (product) {
+          product.stock = Number(product.stock || 0) + Number(item.quantity || 1);
+          await product.save();
+        }
+      }
+
+      order.status = "Cancelled";
+    }
+
+    order.cancellation = {
+      requested: isDispatched,
+      reasonType,
+      reason,
+      details,
+      customerMessage,
+      requestedAt: new Date(),
+      resolvedAt: isDispatched ? undefined : new Date(),
+    };
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: customerMessage,
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
   getSellerOrders,
   updateOrderStatus,
+  cancelOrder,
 };

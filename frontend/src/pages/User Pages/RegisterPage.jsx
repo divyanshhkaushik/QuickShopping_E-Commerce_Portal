@@ -67,7 +67,8 @@ function RegisterPage() {
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch(`${API_URL}/api/auth/register`, {  //If validation succeeds,
+        //Sends a POST request with data to store in database
         method: "POST",
         headers: {
           "Content-Type": "application/json",

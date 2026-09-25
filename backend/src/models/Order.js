@@ -84,6 +84,34 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: "Placed",
     },
+    cancellation: {
+      requested: {
+        type: Boolean,
+        default: false,
+      },
+      reasonType: {
+        type: String,
+        default: "",
+      },
+      reason: {
+        type: String,
+        default: "",
+      },
+      details: {
+        type: String,
+        default: "",
+      },
+      customerMessage: {
+        type: String,
+        default: "",
+      },
+      requestedAt: {
+        type: Date,
+      },
+      resolvedAt: {
+        type: Date,
+      },
+    },
   },
   { timestamps: true }
 );
