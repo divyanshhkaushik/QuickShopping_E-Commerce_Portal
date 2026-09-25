@@ -11,11 +11,7 @@ function SellerDashboard() {
   const [loading, setLoading] = useState(true);
 
   const totalProducts = products.length;
-
-  const totalStock = products.reduce(
-    (total, product) => total + Number(product.stock || 0),
-    0
-  );
+  const totalStock = products.reduce((total, product) => total + Number(product.stock || 0), 0);
 
   const totalRevenue = orders.reduce((total, order) => {
     const sellerOrderTotal = (order.items || []).reduce((sum, item) => {
@@ -74,7 +70,7 @@ function SellerDashboard() {
       to: "/seller/analytics",
       icon: "📈",
       title: "Analytics",
-      description: "View business insights.",
+      description: "Open your dedicated insights page.",
     },
     {
       to: "/seller/coupons",
@@ -169,7 +165,15 @@ function SellerDashboard() {
         </section>
 
         <section className="mt-10">
-          <h2 className="mb-5 text-2xl font-bold text-[#111827]">Quick Actions</h2>
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-bold text-[#111827]">Quick Actions</h2>
+            <Link
+              to="/seller/analytics"
+              className="rounded-full bg-[#eff6ff] px-4 py-2 text-sm font-semibold text-[#2563eb] transition hover:bg-[#dbeafe]"
+            >
+              Open Analytics
+            </Link>
+          </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             {quickActions.map((action) => (
@@ -178,7 +182,9 @@ function SellerDashboard() {
                 to={action.to}
                 className="rounded-3xl bg-white p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-xl"
               >
-                <h3 className="text-lg font-bold">{action.icon} {action.title}</h3>
+                <h3 className="text-lg font-bold">
+                  {action.icon} {action.title}
+                </h3>
                 <p className="mt-2 text-sm text-[#64748b]">{action.description}</p>
               </Link>
             ))}
@@ -189,9 +195,7 @@ function SellerDashboard() {
           <h2 className="mb-5 text-2xl font-bold text-[#111827]">Recent Products</h2>
 
           {loading ? (
-            <div className="rounded-3xl bg-white p-8 shadow-lg">
-              Loading products...
-            </div>
+            <div className="rounded-3xl bg-white p-8 shadow-lg">Loading products...</div>
           ) : products.length === 0 ? (
             <div className="rounded-3xl bg-white p-8 shadow-lg">
               <h3 className="text-lg font-semibold">No Products Added Yet</h3>
@@ -247,21 +251,27 @@ function SellerDashboard() {
                       <p className="text-sm text-[#64748b]">Order ID</p>
                       <h3 className="text-lg font-bold text-[#111827]">{order.orderId}</h3>
                     </div>
+
                     <span className="rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
                       {order.status}
                     </span>
                   </div>
 
                   <div className="mt-4 space-y-2">
-                    {(order.items || []).filter((item) => String(item.sellerId) === String(sellerId)).map((item, index) => (
-                      <div key={`${order._id}-${index}`} className="flex items-center justify-between rounded-2xl bg-[#f8fafc] p-3">
-                        <div>
-                          <p className="font-medium text-[#111827]">{item.productName}</p>
-                          <p className="text-sm text-[#64748b]">Qty: {item.quantity}</p>
+                    {(order.items || [])
+                      .filter((item) => String(item.sellerId) === String(sellerId))
+                      .map((item, index) => (
+                        <div
+                          key={`${order._id}-${index}`}
+                          className="flex items-center justify-between rounded-2xl bg-[#f8fafc] p-3"
+                        >
+                          <div>
+                            <p className="font-medium text-[#111827]">{item.productName}</p>
+                            <p className="text-sm text-[#64748b]">Qty: {item.quantity}</p>
+                          </div>
+                          <p className="font-semibold text-[#2563eb]">₹{Number(item.price * item.quantity).toLocaleString()}</p>
                         </div>
-                        <p className="font-semibold text-[#2563eb]">₹{Number(item.price * item.quantity).toLocaleString()}</p>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
               ))}

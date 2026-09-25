@@ -16,6 +16,7 @@ function AddUserAddress() {
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const [position, setPosition] = useState(defaultCenter); //track the position of the marker on the map
+  const [entryMode, setEntryMode] = useState("map");
   const [formData, setFormData] = useState({
     label: "",
     addressLine1: "",
@@ -128,7 +129,7 @@ function AddUserAddress() {
     e.preventDefault();
 
     if (!formData.addressLine1 || !formData.city || !formData.state || !formData.pincode) {
-      alert("Please choose a valid location on the map or use current location.");
+      alert("Please fill in the required address fields.");
       return;
     }
 
@@ -181,7 +182,7 @@ function AddUserAddress() {
 
         <div className="mx-auto max-w-5xl px-6 py-8">
           <div className="rounded-[2rem] border border-white/30 bg-white/80 p-6 shadow-xl shadow-[#dbeafe]/40 backdrop-blur-xl sm:p-8">
-          <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <Link
               to="/addresses"
               className="rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1f2937] transition hover:border-[#93c5fd]"
@@ -189,34 +190,66 @@ function AddUserAddress() {
               ← Back to Addresses
             </Link>
 
-            <button
-              type="button"
-              onClick={useCurrentLocation}
-              className="rounded-xl bg-gradient-to-r from-[#ffb347] to-[#f28c28] px-5 py-3 font-medium text-[#111827] shadow-lg shadow-[#f59e0b]/20 transition hover:scale-[1.01]"
-            >
-              Use Current Location
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setEntryMode("map")}
+                className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  entryMode === "map"
+                    ? "bg-[#111827] text-white shadow-lg shadow-slate-300/40"
+                    : "border border-[#dfe7f0] bg-white text-[#1f2937]"
+                }`}
+              >
+                Use Map
+              </button>
+              <button
+                type="button"
+                onClick={() => setEntryMode("manual")}
+                className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  entryMode === "manual"
+                    ? "bg-[#111827] text-white shadow-lg shadow-slate-300/40"
+                    : "border border-[#dfe7f0] bg-white text-[#1f2937]"
+                }`}
+              >
+                Enter Manually
+              </button>
+              {entryMode === "map" && (
+                <button
+                  type="button"
+                  onClick={useCurrentLocation}
+                  className="rounded-xl bg-gradient-to-r from-[#ffb347] to-[#f28c28] px-5 py-3 font-medium text-[#111827] shadow-lg shadow-[#f59e0b]/20 transition hover:scale-[1.01]"
+                >
+                  Use Current Location
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-[#dfe7f0] bg-[#f8fafc] p-2 shadow-inner shadow-[#e2e8f0]">
-            {isLoaded ? (
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={position}
-                zoom={13}
-                onLoad={(map) => {
-                  mapRef.current = map;
-                }}
-                onClick={handleMapClick}
-              >
-                <Marker position={position} />
-              </GoogleMap>
-            ) : (
-              <div className="flex h-[420px] items-center justify-center rounded-[1rem] bg-[#eef3f8] text-[#475569]">
-                Loading map...
-              </div>
-            )}
-          </div>
+          {entryMode === "map" ? (
+            <div className="overflow-hidden rounded-2xl border border-[#dfe7f0] bg-[#f8fafc] p-2 shadow-inner shadow-[#e2e8f0]">
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={mapContainerStyle}
+                  center={position}
+                  zoom={13}
+                  onLoad={(map) => {
+                    mapRef.current = map;
+                  }}
+                  onClick={handleMapClick}
+                >
+                  <Marker position={position} />
+                </GoogleMap>
+              ) : (
+                <div className="flex h-[420px] items-center justify-center rounded-[1rem] bg-[#eef3f8] text-[#475569]">
+                  Loading map...
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-5 text-sm text-[#475569]">
+              Enter the address details below without using the map. Coordinates are optional when the location is added manually.
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
@@ -236,8 +269,11 @@ function AddUserAddress() {
                 type="text"
                 placeholder="Address"
                 value={formData.addressLine1}
+                readOnly={entryMode === "map"}
                 onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
-                className="w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe]"
+                className={`w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none transition focus:border-[#2563eb] focus:ring-2 focus:ring-[#bfdbfe] ${
+                  entryMode === "map" ? "cursor-not-allowed" : ""
+                }`}
               />
             </div>
 
@@ -259,8 +295,11 @@ function AddUserAddress() {
                   type="text"
                   placeholder="City"
                   value={formData.city}
-                  readOnly
-                  className="w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none"
+                  readOnly={entryMode === "map"}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className={`w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none ${
+                    entryMode === "map" ? "cursor-not-allowed" : ""
+                  }`}
                 />
               </div>
 
@@ -270,8 +309,11 @@ function AddUserAddress() {
                   type="text"
                   placeholder="State"
                   value={formData.state}
-                  readOnly
-                  className="w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none"
+                  readOnly={entryMode === "map"}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  className={`w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none ${
+                    entryMode === "map" ? "cursor-not-allowed" : ""
+                  }`}
                 />
               </div>
             </div>
@@ -283,8 +325,11 @@ function AddUserAddress() {
                   type="text"
                   placeholder="Pincode"
                   value={formData.pincode}
-                  readOnly
-                  className="w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none"
+                  readOnly={entryMode === "map"}
+                  onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+                  className={`w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none ${
+                    entryMode === "map" ? "cursor-not-allowed" : ""
+                  }`}
                 />
               </div>
 
@@ -294,8 +339,11 @@ function AddUserAddress() {
                   type="text"
                   placeholder="Country"
                   value={formData.country}
-                  readOnly
-                  className="w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none"
+                  readOnly={entryMode === "map"}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                  className={`w-full rounded-xl border border-[#dfe7f0] bg-[#f8fafc] px-4 py-3 text-[#111827] placeholder:text-[#64748b] outline-none ${
+                    entryMode === "map" ? "cursor-not-allowed" : ""
+                  }`}
                 />
               </div>
             </div>

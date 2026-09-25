@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function AddProduct() {
   const navigate = useNavigate();
@@ -167,16 +167,25 @@ function AddProduct() {
       {/* Header */}
 
       <div className="bg-[#131921]">
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          <h1 className="text-4xl font-black">
-            <span className="bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#f59e0b] bg-clip-text text-transparent">
-              Add New Product
-            </span>
-          </h1>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-8">
+          <div>
+            <h1 className="text-4xl font-black">
+              <span className="bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#f59e0b] bg-clip-text text-transparent">
+                Add New Product
+              </span>
+            </h1>
 
-          <p className="mt-2 text-[#d1d9e3]">
-            List your product and start selling.
-          </p>
+            <p className="mt-2 text-[#d1d9e3]">
+              List your product and start selling.
+            </p>
+          </div>
+
+          <Link
+            to="/seller-dashboard"
+            className="rounded-xl border border-white/15 bg-white/10 px-5 py-3 font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+          >
+            Back to Dashboard
+          </Link>
         </div>
       </div>
 

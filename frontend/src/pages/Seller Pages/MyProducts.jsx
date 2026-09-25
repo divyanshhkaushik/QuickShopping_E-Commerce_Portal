@@ -99,7 +99,7 @@ function MyProducts() {
   return (
     <div className="shopping-page-shell">
       <div className="bg-[#131921]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-8">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-8">
           <div>
             <h1 className="text-4xl font-black">
               <span className="bg-gradient-to-r from-[#93c5fd] via-[#f7b267] to-[#f59e0b] bg-clip-text text-transparent">
@@ -110,12 +110,21 @@ function MyProducts() {
             <p className="mt-2 text-[#d1d9e3]">Manage your products</p>
           </div>
 
-          <Link
-            to="/seller/add-product"
-            className="rounded-xl bg-gradient-to-r from-[#ffb347] to-[#f28c28] px-5 py-3 font-semibold text-[#111827]"
-          >
-            + Add Product
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              to="/seller-dashboard"
+              className="rounded-xl border border-white/15 bg-white/10 px-5 py-3 font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+            >
+              Back to Dashboard
+            </Link>
+
+            <Link
+              to="/seller/add-product"
+              className="rounded-xl bg-gradient-to-r from-[#ffb347] to-[#f28c28] px-5 py-3 font-semibold text-[#111827]"
+            >
+              + Add Product
+            </Link>
+          </div>
         </div>
       </div>
 

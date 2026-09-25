@@ -104,6 +104,12 @@ const UserAddressPage = () => {
                     📍 {address.latitude}, {address.longitude}
                   </div>
                 )}
+
+                {address.latitude === undefined && address.longitude === undefined && (
+                  <div className="mt-4 rounded-xl bg-amber-50 p-3 text-sm font-medium text-amber-700">
+                    Entered manually
+                  </div>
+                )}
               </div>
             ))}
           </div>
