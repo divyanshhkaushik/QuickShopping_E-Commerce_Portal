@@ -265,6 +265,17 @@ node -e "require('./src/app'); console.log('backend app loaded')"
 - Product images are hosted through Cloudinary.
 - OTP debug mode is useful while SMTP transport is not available during testing.
 - Legal/help pages now include FAQ and Terms and Conditions.
+## Images
+<img width="1858" height="2538" alt="Screenshot_25-9-2026_194853_localhost" src="https://github.com/user-attachments/assets/c48d046b-0d4a-46b8-96f6-29270bd52505" /><img width="1870" height="2782" alt="Screenshot_25-9-2026_193939_localhost" src="https://github.com/user-attachments/assets/18e0f1f9-1726-40d7-a83d-41a9bb36b9c7" />
+<img width="804" height="1327" alt="Screenshot_25-9-2026_194030_localhost" src="https://github.com/user-attachments/assets/a97d45b9-3ce0-4e48-b821-a83e140b87ee" />
+<img width="1873" height="583" alt="Screenshot_25-9-2026_194055_localhost" src="https://github.com/user-attachments/assets/23a553e7-01d3-4cbc-aa1c-dc1aec5fb8fb" />
+<img width="1863" height="2104" alt="Screenshot_25-9-2026_194119_localhost" src="https://github.com/user-attachments/assets/6be856d3-bf58-4597-8f16-0fe36b64c3d8" />
+<img width="1864" height="4313" alt="Screenshot_25-9-2026_194139_localhost" src="https://github.com/user-attachments/assets/b2e7a259-fcc7-41b0-bcfb-ee797be74c82" />
+<img width="1876" height="1308" alt="Screenshot_25-9-2026_19422_localhost" src="https://github.com/user-attachments/assets/b9025367-ccda-4199-915f-e9b42fb66c4c" />
+<img width="1471" height="1849" alt="Screenshot_25-9-2026_194750_localhost" src="https://github.com/user-attachments/assets/39c0aef7-108d-4c4b-aa00-c5466ccdc0d2" />
+<img width="1846" height="3284" alt="Screenshot_25-9-2026_194812_localhost" src="https://github.com/user-attachments/assets/bc5a8905-9d45-4ac8-8602-4fa5643bed3a" />
+<img width="1843" height="1129" alt="Screenshot_25-9-2026_194832_localhost" src="https://github.com/user-attachments/assets/da5546d3-70fb-4fde-8c1e-e98019555f69" />
+
 
 ## License
 
