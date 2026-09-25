@@ -275,6 +275,9 @@ node -e "require('./src/app'); console.log('backend app loaded')"
 <img width="1471" height="1849" alt="Screenshot_25-9-2026_194750_localhost" src="https://github.com/user-attachments/assets/39c0aef7-108d-4c4b-aa00-c5466ccdc0d2" />
 <img width="1846" height="3284" alt="Screenshot_25-9-2026_194812_localhost" src="https://github.com/user-attachments/assets/bc5a8905-9d45-4ac8-8602-4fa5643bed3a" />
 <img width="1843" height="1129" alt="Screenshot_25-9-2026_194832_localhost" src="https://github.com/user-attachments/assets/da5546d3-70fb-4fde-8c1e-e98019555f69" />
+<img width="1861" height="2621" alt="image" src="https://github.com/user-attachments/assets/6707eb4f-df15-4693-b85d-cb40434c68c3" />
+<img width="1836" height="1906" alt="image" src="https://github.com/user-attachments/assets/f5160a1c-de1b-4eff-8eca-00f0ecc00b3e" />
+
 
 
 ## License
